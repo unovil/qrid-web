@@ -5,7 +5,7 @@
 	import { cn } from '$lib/utils.js';
 	import type { ClassValue } from 'tailwind-variants';
 	import { enhance } from '$app/forms';
-	import type { ActionData } from '../../../routes/signup/$types';
+	import type { ActionData } from '$routes/signup/$types';
 
 	interface Props {
 		class?: ClassValue | null;
