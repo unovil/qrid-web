@@ -122,6 +122,12 @@
 	}
 }
 
+@layer utilities {
+	.small-caps {
+		font-variant: all-small-caps;
+	}
+}
+
 @theme {
 	--font-sans:
 		'Noto Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',

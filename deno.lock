@@ -10,8 +10,10 @@
     "npm:@types/node@^24.0.14": "24.0.14",
     "npm:@typescript-eslint/eslint-plugin@^8.37.0": "8.37.0_@typescript-eslint+parser@8.37.0__eslint@9.31.0__typescript@5.8.3_eslint@9.31.0_typescript@5.8.3",
     "npm:@typescript-eslint/parser@^8.37.0": "8.37.0_eslint@9.31.0_typescript@5.8.3",
+    "npm:argon2@~0.43.1": "0.43.1",
     "npm:bits-ui@^2.8.11": "2.8.11_@internationalized+date@3.8.2_svelte@5.36.7__acorn@8.15.0",
     "npm:clsx@^2.1.1": "2.1.1",
+    "npm:dotenv@^17.2.0": "17.2.0",
     "npm:drizzle-kit@~0.31.4": "0.31.4_esbuild@0.25.6",
     "npm:drizzle-orm@~0.44.3": "0.44.3_postgres@3.4.7",
     "npm:eslint-config-prettier@^10.1.5": "10.1.5_eslint@9.31.0",
@@ -469,6 +471,9 @@
         "@nodelib/fs.scandir",
         "fastq"
       ]
+    },
+    "@phc/format@1.0.0": {
+      "integrity": "sha512-m7X9U6BG2+J+R1lSOdCiITLLrxm+cWlNI3HUFA92oLO77ObGNzaKdh8pMLqdZcshtkKuV84olNNXDfMc4FezBQ=="
     },
     "@polka/url@1.0.0-next.29": {
       "integrity": "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="
@@ -950,6 +955,15 @@
         "color-convert"
       ]
     },
+    "argon2@0.43.1": {
+      "integrity": "sha512-TfOzvDWUaQPurCT1hOwIeFNkgrAJDpbBGBGWDgzDsm11nNhImc13WhdGdCU6K7brkp8VpeY07oGtSex0Wmhg8w==",
+      "dependencies": [
+        "@phc/format",
+        "node-addon-api",
+        "node-gyp-build"
+      ],
+      "scripts": true
+    },
     "argparse@2.0.1": {
       "integrity": "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="
     },
@@ -1069,6 +1083,9 @@
     },
     "devalue@5.1.1": {
       "integrity": "sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw=="
+    },
+    "dotenv@17.2.0": {
+      "integrity": "sha512-Q4sgBT60gzd0BB0lSyYD3xM4YxrXA9y4uBDof1JNYGzOXrQdQ6yX+7XIAqoFOGQFOTK1D3Hts5OllpxMDZFONQ=="
     },
     "drizzle-kit@0.31.4_esbuild@0.25.6": {
       "integrity": "sha512-tCPWVZWZqWVx2XUsVpJRnH9Mx0ClVOf5YUHerZ5so1OKSlqww4zy1R5ksEdGRcO3tM3zj0PYN6V48TbQCL1RfA==",
@@ -1668,8 +1685,15 @@
     "natural-compare@1.4.0": {
       "integrity": "sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw=="
     },
+    "node-addon-api@8.5.0": {
+      "integrity": "sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A=="
+    },
     "node-fetch-native@1.6.6": {
       "integrity": "sha512-8Mc2HhqPdlIfedsuZoc3yioPuzp6b+L5jRCRY1QzuWZh2EGJVQrGppC6V6cF0bLdbW0+O2YpqCA25aF/1lvipQ=="
+    },
+    "node-gyp-build@4.8.4": {
+      "integrity": "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==",
+      "bin": true
     },
     "once@1.4.0": {
       "integrity": "sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==",
@@ -2141,8 +2165,10 @@
         "npm:@types/node@^24.0.14",
         "npm:@typescript-eslint/eslint-plugin@^8.37.0",
         "npm:@typescript-eslint/parser@^8.37.0",
+        "npm:argon2@~0.43.1",
         "npm:bits-ui@^2.8.11",
         "npm:clsx@^2.1.1",
+        "npm:dotenv@^17.2.0",
         "npm:drizzle-kit@~0.31.4",
         "npm:drizzle-orm@~0.44.3",
         "npm:eslint-config-prettier@^10.1.5",
