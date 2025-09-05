@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ConfirmForm from '$lib/components/ui-auth/confirm-form.svelte';
-	import SignUpForm from '$lib/components/ui-auth/sign-up-form.svelte';
-	import VerifyForm from '$lib/components/ui-auth/verify-form.svelte';
+	import ConfirmForm from './ConfirmForm.svelte';
+	import SignUpForm from './SignupForm.svelte';
+	import VerifyForm from './VerifyForm.svelte';
 	import type { PageProps } from './$types';
 
 	let { form }: PageProps = $props();
