@@ -25,15 +25,15 @@
     navMain: [
       {
         title: "Dashboard",
-        url: "#",
+        url: "/",
         icon: DashboardIcon,
       },
       {
-        title: "Lifecycle",
-        url: "#",
+        title: "Attendances",
+        url: "/attendances",
         icon: ListDetailsIcon,
       },
-      {
+      /* {
         title: "Analytics",
         url: "#",
         icon: ChartBarIcon,
@@ -47,7 +47,7 @@
         title: "Team",
         url: "#",
         icon: UsersIcon,
-      },
+      }, */
     ],
     navClouds: [
       {

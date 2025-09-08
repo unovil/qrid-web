@@ -34,7 +34,7 @@
             {#if item.icon}
               <item.icon />
             {/if}
-            <span>{item.title}</span>
+            <a class="w-full" href={item.url}>{item.title}</a>
           </Sidebar.MenuButton>
         </Sidebar.MenuItem>
       {/each}
