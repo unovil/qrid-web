@@ -1,20 +1,32 @@
 import { db } from '$lib/supabase';
-import { fail } from '@sveltejs/kit';
 import type { Actions } from '@sveltejs/kit';
-import { sql } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
 import * as argon2 from 'argon2';
+import { sql } from 'drizzle-orm';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import type { PageServerLoad } from './$types';
+import { signUpSchema, verifySchema } from './schema';
+
+export const load: PageServerLoad = async () => {
+	return {
+		verifyForm: await superValidate(zod4(verifySchema)),
+		signUpForm: await superValidate(zod4(signUpSchema))
+	}
+};
 
 export const actions = {
-	verify: async ({ cookies, request }) => {
-		const formData = await request.formData();
-		console.log(Object.fromEntries(formData.entries()));
+	verify: async ({ request }) => {
+		const verifyForm = await superValidate(request, zod4(verifySchema));
+
+		console.log(verifyForm.data)
 
 		// verify allowed user with domain, domain id and password
 		const { status, hashedPassword } = (
 			await db.execute(sql`SELECT get_allowed_user_json(
-            ${formData.get('domain')}, 
-            ${formData.get('domainId')}
-        );`)
+				${verifyForm.data.domain}, 
+				${verifyForm.data.domainId}
+			);`)
 		)[0]['get_allowed_user_json'] as { status: number; hashedPassword: string | null };
 
 		console.log(`status: ${status}, hashedPassword: ${hashedPassword}`);
@@ -29,7 +41,7 @@ export const actions = {
 
 		const isPasswordVerified = await argon2.verify(
 			hashedPassword as string,
-			formData.get('password') as string
+			verifyForm.data.password
 		);
 
 		if (isPasswordVerified === false) {

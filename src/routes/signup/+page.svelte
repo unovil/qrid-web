@@ -1,17 +1,17 @@
 <script lang="ts">
-	import ConfirmForm from './ConfirmForm.svelte';
-	import SignUpForm from './SignupForm.svelte';
-	import VerifyForm from './VerifyForm.svelte';
-	import type { PageProps } from './$types';
+	import ConfirmForm from './confirm-form.svelte';
+	import SignUpForm from './signup-form.svelte';
+	import VerifyForm from './verify-form.svelte';
+	import type { PageData } from './$types';
 
-	let { form }: PageProps = $props();
-	type authStages = 'verify' | 'signup' | 'confirm';
+	let { data }: { data: PageData } = $props();
+	/* type authStages = 'verify' | 'signup' | 'confirm';
 	let authStep = $derived.by(() => {
 		if (form?.id === 'verify' && form?.success === true) return 'signup';
 		if (form?.id === 'signup' && form?.success === true) return 'confirm';
 		if (form?.id === 'confirm') return 'confirm';
 		return 'verify'; // Default to verify if no form data
-	}) as authStages;
+	}) as authStages; */
 
 	// $inspect(authStep).with(console.trace);
 </script>
@@ -27,13 +27,14 @@
 		</div>
 		<div class="flex flex-1 items-center justify-center">
 			<div class="w-full max-w-xs px-4">
-				{#if authStep === 'verify'}
-					<VerifyForm action="?/verify" {form} />
+				<VerifyForm action="?/verify" {data} />
+<!-- 				{#if authStep === 'verify'}
+					<VerifyForm action="?/verify" {data} />
 				{:else if authStep === 'signup'}
 					<SignUpForm action="/signup?/create" onback={() => (authStep = 'verify')} />
 				{:else if authStep === 'confirm'}
 					<ConfirmForm action="/signup?/confirm" onback={() => (authStep = 'signup')} />
-				{/if}
+				{/if} -->
 			</div>
 		</div>
 	</div>

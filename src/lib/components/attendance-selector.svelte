@@ -16,13 +16,18 @@
   const triggerContentSection = $derived(
     sectionItems.find((f) => f.value === sectionValue)?.label ?? "Select a section"
   );
+
+  $effect(() => {
+    if (gradeItems.length === 1) gradeValue = gradeItems[0].value;
+    if (sectionItems.length === 1) sectionValue = sectionItems[0].value;
+  })
 </script>
 
 <div class="flex flex-row gap-6">
   <div class="flex flex-row gap-3">
     <IconCircleNumber1 class="mb-auto mt-auto"/>
 
-    <Select.Root type="single" name="gradeLevel" bind:value={gradeValue} onValueChange={() => sectionValue = ""}>
+    <Select.Root type="single" name="gradeLevel" bind:value={gradeValue} disabled={gradeItems.length < 2} onValueChange={() => sectionValue = ""}>
       <Select.Trigger class="w-[180px]">
         {triggerContentGrade}
       </Select.Trigger>
@@ -42,7 +47,7 @@
   <div class="flex flex-row gap-3">
     <IconCircleNumber2 class="mb-auto mt-auto"/>
 
-    <Select.Root type="single" name="section" bind:value={sectionValue} disabled={!gradeValue}>
+    <Select.Root type="single" name="section" bind:value={sectionValue} disabled={!gradeValue || sectionItems.length < 2}>
       <Select.Trigger class="w-[180px]">
         {triggerContentSection}
       </Select.Trigger>

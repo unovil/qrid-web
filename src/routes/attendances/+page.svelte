@@ -1,14 +1,6 @@
 <script lang="ts">
   import AttendanceSelector from "$lib/components/attendance-selector.svelte";
   
-  let gradeLevels = [7, 8, 9, 10, 11, 12];
-  let gradeLevelItems = $derived(
-    gradeLevels.map((level) => ({ value: level.toString(), label: `Grade ${level}` }))
-  );
-  
-  let selectedGradeLevel: string | undefined = $state(undefined);
-  let selectedSection: string | undefined = $state(undefined);
-  
   let sections = {
     7: [
       { value: "15", label: "A" },
@@ -35,6 +27,15 @@
       { value: "30", label: "P" },
     ],
   } as Record<number, { value: string; label: string }[]>;
+
+  let gradeLevels = Object.keys(sections) as unknown as Array<keyof typeof sections>;
+  let gradeLevelItems = $derived(
+    gradeLevels.map((level) => ({ value: level.toString(), label: `Grade ${level}` }))
+  );
+  
+  let selectedGradeLevel: string | undefined = $state(undefined);
+  let selectedSection: string | undefined = $state(undefined);
+  
   let sectionItems = $derived.by(() => {
     const gradeLevel = (!selectedGradeLevel) ? 0 : parseInt(selectedGradeLevel);
     if (!(gradeLevel in sections)) return [];

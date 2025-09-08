@@ -20,10 +20,14 @@
 	});
 </script>
 
-<Sidebar.Provider style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);">
-	<SiteSidebar variant="inset" />
-	<Sidebar.Inset>
-		<SiteHeader title={headerTitle}/>
-		{@render children()}	
-	</Sidebar.Inset>
-</Sidebar.Provider>
+{#if page.url.pathname.startsWith('/login') || page.url.pathname.startsWith('/signup')}
+	{@render children()}
+{:else}
+	<Sidebar.Provider style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);">
+		<SiteSidebar variant="inset" />
+		<Sidebar.Inset>
+			<SiteHeader title={headerTitle}/>
+			{@render children()}	
+		</Sidebar.Inset>
+	</Sidebar.Provider>
+{/if}
