@@ -1,0 +1,450 @@
+{
+	"id": "00000000-0000-0000-0000-000000000000",
+	"prevId": "",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.sections": {
+			"name": "sections",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"identity": {
+						"type": "byDefault",
+						"name": "sections_id_seq",
+						"increment": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"startWith": "1",
+						"cache": "1",
+						"cycle": false,
+						"schema": "public"
+					}
+				},
+				"level": {
+					"name": "level",
+					"type": "smallint",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"section": {
+					"name": "section",
+					"type": "varchar(24)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"school_id": {
+					"name": "school_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"sections_school_id_fkey": {
+					"name": "sections_school_id_fkey",
+					"tableFrom": "sections",
+					"tableTo": "schools",
+					"schemaTo": "public",
+					"columnsFrom": ["school_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {
+				"Section access by granular role": {
+					"name": "Section access by granular role",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "(EXISTS ( SELECT 1\n   FROM allowed_users au\n  WHERE ((au.id = (((( SELECT auth.jwt() AS jwt) -> 'user_metadata'::text) ->> 'allowed_user_id'::text))::integer) AND (((au.role = 'CLASS'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM allowed_user_sections aus\n          WHERE ((aus.user_id = au.id) AND (aus.section_id = sections.id))))) OR ((au.role = 'LEVEL'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM allowed_user_sections aus\n          WHERE ((aus.user_id = au.id) AND (aus.section_id = sections.id))))) OR ((au.role = 'FULL'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM schools sc\n          WHERE ((sc.domain = au.domain) AND (sc.id = sections.school_id)))))))))"
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.allowed_user_sections": {
+			"name": "allowed_user_sections",
+			"schema": "",
+			"columns": {
+				"user_id": {
+					"name": "user_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"section_id": {
+					"name": "section_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"allowed_user_sections_section_id_fkey": {
+					"name": "allowed_user_sections_section_id_fkey",
+					"tableFrom": "allowed_user_sections",
+					"tableTo": "sections",
+					"schemaTo": "public",
+					"columnsFrom": ["section_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"allowed_user_sections_user_id_fkey": {
+					"name": "allowed_user_sections_user_id_fkey",
+					"tableFrom": "allowed_user_sections",
+					"tableTo": "allowed_users",
+					"schemaTo": "public",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {
+				"Enable read access for all users": {
+					"name": "Enable read access for all users",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "true"
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.attendances": {
+			"name": "attendances",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"identity": {
+						"type": "byDefault",
+						"name": "attendances_id_seq",
+						"increment": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"startWith": "1",
+						"cache": "1",
+						"cycle": false,
+						"schema": "public"
+					}
+				},
+				"student_id": {
+					"name": "student_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"timestamp": {
+					"name": "timestamp",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"allowed_user_id": {
+					"name": "allowed_user_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"attendances_allowed_user_id_fkey": {
+					"name": "attendances_allowed_user_id_fkey",
+					"tableFrom": "attendances",
+					"tableTo": "allowed_users",
+					"schemaTo": "public",
+					"columnsFrom": ["allowed_user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "cascade"
+				},
+				"attendances_student_id_fkey": {
+					"name": "attendances_student_id_fkey",
+					"tableFrom": "attendances",
+					"tableTo": "students",
+					"schemaTo": "public",
+					"columnsFrom": ["student_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {
+				"Enable read access based on students": {
+					"name": "Enable read access based on students",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "(EXISTS ( SELECT 1\n   FROM students\n  WHERE (attendances.student_id = students.id)))"
+				},
+				"Enable insert based on students": {
+					"name": "Enable insert based on students",
+					"as": "PERMISSIVE",
+					"for": "INSERT",
+					"to": ["authenticated"]
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.allowed_users": {
+			"name": "allowed_users",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigserial",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"domain": {
+					"name": "domain",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"org_id": {
+					"name": "org_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"given_password": {
+					"name": "given_password",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"is_registered": {
+					"name": "is_registered",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				},
+				"role": {
+					"name": "role",
+					"type": "STUDENT_ACCESS",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'CLASS'"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {
+				"Enable read access for its own account": {
+					"name": "Enable read access for its own account",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "((((( SELECT auth.jwt() AS jwt) -> 'user_metadata'::text) -> 'allowed_user_id'::text))::integer = id)"
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.students": {
+			"name": "students",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"identity": {
+						"type": "byDefault",
+						"name": "students_lrn_seq",
+						"increment": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"startWith": "1",
+						"cache": "1",
+						"cycle": false,
+						"schema": "public"
+					}
+				},
+				"last_name": {
+					"name": "last_name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"first_name": {
+					"name": "first_name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"middle_name": {
+					"name": "middle_name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"section_id": {
+					"name": "section_id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"students_section_id_fkey": {
+					"name": "students_section_id_fkey",
+					"tableFrom": "students",
+					"tableTo": "sections",
+					"schemaTo": "public",
+					"columnsFrom": ["section_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {
+				"students_first_name_check": {
+					"name": "students_first_name_check",
+					"value": "(length(first_name) > 0) AND (length(first_name) <= 50)"
+				},
+				"students_last_name_check": {
+					"name": "students_last_name_check",
+					"value": "(length(last_name) > 0) AND (length(last_name) <= 32)"
+				},
+				"students_lrn_check": {
+					"name": "students_lrn_check",
+					"value": "(id >= '100000000000'::bigint) AND (id <= '999999999999'::bigint)"
+				},
+				"students_middle_name_check": {
+					"name": "students_middle_name_check",
+					"value": "length(middle_name) <= 16"
+				}
+			},
+			"policies": {
+				"Student access by granular role": {
+					"name": "Student access by granular role",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "(EXISTS ( SELECT 1\n   FROM allowed_users au\n  WHERE ((au.id = (((( SELECT auth.jwt() AS jwt) -> 'user_metadata'::text) ->> 'allowed_user_id'::text))::integer) AND (((au.role = 'CLASS'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM allowed_user_sections aus\n          WHERE ((aus.user_id = au.id) AND (aus.section_id = students.section_id))))) OR ((au.role = 'LEVEL'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM allowed_user_sections aus\n          WHERE ((aus.user_id = au.id) AND (aus.section_id = students.section_id))))) OR ((au.role = 'FULL'::\"STUDENT_ACCESS\") AND (EXISTS ( SELECT 1\n           FROM sections s\n          WHERE ((s.id = students.section_id) AND (s.school_id IN ( SELECT sc.id\n                   FROM schools sc\n                  WHERE (sc.domain = au.domain)))))))))))"
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.schools": {
+			"name": "schools",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"identity": {
+						"type": "byDefault",
+						"name": "schools_id_seq",
+						"increment": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"startWith": "1",
+						"cache": "1",
+						"cycle": false,
+						"schema": "public"
+					}
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"domain": {
+					"name": "domain",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"decryption_key": {
+					"name": "decryption_key",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "replace(replace(encode(extensions.gen_random_bytes(32), 'base64'::text), '+'::text, '-'::text), '/'::text, '_'::text)"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"schools_domain_fkey": {
+					"name": "schools_domain_fkey",
+					"tableFrom": "schools",
+					"tableTo": "schools",
+					"schemaTo": "public",
+					"columnsFrom": ["domain"],
+					"columnsTo": ["domain"],
+					"onDelete": "no action",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {
+				"School access by domain": {
+					"name": "School access by domain",
+					"as": "PERMISSIVE",
+					"for": "SELECT",
+					"to": ["authenticated"],
+					"using": "(EXISTS ( SELECT 1\n   FROM allowed_users au\n  WHERE ((au.id = (((( SELECT auth.jwt() AS jwt) -> 'user_metadata'::text) ->> 'allowed_user_id'::text))::integer) AND (schools.domain = au.domain))))"
+				}
+			},
+			"isRLSEnabled": true
+		}
+	},
+	"enums": {
+		"public.STUDENT_ACCESS": {
+			"name": "STUDENT_ACCESS",
+			"values": ["CLASS", "LEVEL", "FULL"],
+			"schema": "public"
+		}
+	},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"internal": {
+		"tables": {}
+	}
+}
