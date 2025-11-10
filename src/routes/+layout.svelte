@@ -23,6 +23,8 @@
 
 {#if page.url.pathname.startsWith('/login') || page.url.pathname.startsWith('/signup')}
 	{@render children()}
+{:else if page.status % 100 === 4}
+	{@render children()}
 {:else}
 	<Sidebar.Provider
 		style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);"
