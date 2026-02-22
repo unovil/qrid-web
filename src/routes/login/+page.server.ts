@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) 
 	};
 };
 
-export const actions: Actions = {
+export const actions = {
 	default: async (event) => {
 		console.log('Login action triggered.');
 		const {
@@ -58,4 +58,4 @@ export const actions: Actions = {
 
 		redirect(302, '/dashboard');
 	}
-};
+} satisfies Actions;
