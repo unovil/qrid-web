@@ -93,7 +93,7 @@
 											>{serverError}</Field.FieldError
 										>
 									{/if}
-									<Form.Button type="submit">Submit</Form.Button>
+									<Form.Button type="submit">Sign In</Form.Button>
 								</div>
 								<Field.FieldDescription class="text-center">
 									Haven't registered your account yet? <a href="/signup">Sign up</a>

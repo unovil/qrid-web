@@ -4,10 +4,11 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Field from '$lib/components/ui/field/index.js';
 	import ChooseUserForm from './choose-user-form.svelte';
+	import VerifyStudentForm from './verify-student-form.svelte';
+	import VerifyAdministratorForm from './verify-administrator-form.svelte';
+	import RegisterForm from './register-form.svelte';
 
-	let { data } = $props();
-
-	let serverError = $derived(null);
+	let { data, form: formResult } = $props();
 </script>
 
 <div class="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
@@ -22,12 +23,44 @@
 						</div>
 						<div class="flex flex-col items-center gap-2 text-center">
 							<h1 class="text-2xl font-bold">Create your account</h1>
-							<p class="text-sm text-balance text-muted-foreground">
-								Choose your account type before signing up.
+							<p class="px-3 text-sm text-balance text-muted-foreground">
+								{#if !formResult?.step}
+									Choose your account type before signing up.
+								{:else if formResult.step === 'verify-administrator'}
+									Enter your given credentials to verify your account.
+								{:else if formResult.step === 'verify-student'}
+									Enter your LRN and given password to verify your account.
+								{:else if formResult.step in ['register-administrator', 'register-student']}
+									Enter your email and password to register your account.
+								{/if}
 							</p>
 						</div>
 						<div class="flex flex-col gap-2 p-6 md:p-8">
-							<ChooseUserForm form={data.chooseUserTypeForm} />
+							{#if !formResult?.step}
+								<ChooseUserForm form={data.chooseUserTypeForm} />
+							{:else if formResult.step === 'verify-administrator'}
+								<VerifyAdministratorForm
+									form={data.verifyAdministratorForm}
+									error={formResult.error}
+								/>
+							{:else if formResult.step === 'verify-student'}
+								<VerifyStudentForm form={data.verifyStudentForm} error={formResult.error} />
+							{:else if formResult.step === 'register-administrator'}
+								<RegisterForm
+									form={data.registerForm}
+									id={formResult.id || 0}
+									error={formResult.error}
+									action="?/registerAdministrator"
+								/>
+							{:else if formResult.step === 'register-student'}
+								<RegisterForm
+									form={data.registerForm}
+									id={formResult.id || 0}
+									error={formResult.error}
+									action="?/registerStudent"
+								/>
+							{/if}
+
 							<Field.FieldDescription class="text-center">
 								Already registered your account? <a href="/login">Sign in</a>
 							</Field.FieldDescription>

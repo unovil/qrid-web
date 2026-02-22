@@ -51,6 +51,7 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.97.0",
+		"argon2": "^0.44.0",
 		"svelte-sonner": "^1.0.7",
 		"valibot": "^1.2.0"
 	}

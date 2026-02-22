@@ -21,7 +21,8 @@ export const verifyStudentSchema = chooseUserTypeSchema.extend({
 
 export type VerifyStudentSchema = typeof verifyStudentSchema;
 
-export const registerStudentSchema = verifyStudentSchema.extend({
+export const registerSchema = z.object({
+	id: z.number().positive(),
 	email: z.email(),
 	password: z
 		.string()
@@ -35,19 +36,4 @@ export const registerStudentSchema = verifyStudentSchema.extend({
 		)
 });
 
-export const registerAdministratorSchema = verifyAdministratorSchema.extend({
-	email: z.email(),
-	password: z
-		.string()
-		.min(8, 'Password must be at least 8 characters long')
-		.regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-		.regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-		.regex(/\d/, 'Password must contain at least one number')
-		.regex(
-			/[@$!%*?&]/,
-			'Password must contain at least one special character (@, $, !, %, *, ?, &)'
-		)
-});
-
-export type RegisterStudentSchema = typeof registerStudentSchema;
-export type RegisterAdministratorSchema = typeof registerAdministratorSchema;
+export type RegisterSchema = typeof registerSchema;

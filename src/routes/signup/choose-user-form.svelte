@@ -22,12 +22,12 @@
 <br />
 
 <form use:enhance method="post" action="?/chooseUserType" class="flex flex-col gap-6">
-	<RadioGroup.Root bind:value={$formData.userType}>
-		<Field.Label>
-			<Field.Field orientation="horizontal">
-				<Form.Field form={chooseUserTypeForm} name="userType">
-					<Form.Control>
-						{#snippet children({ props })}
+	<Form.Field form={chooseUserTypeForm} name="userType">
+		<Form.Control>
+			{#snippet children({ props })}
+				<RadioGroup.Root {...props} bind:value={$formData.userType}>
+					<Field.Label>
+						<Field.Field orientation="horizontal">
 							<div class="flex flex-row gap-2">
 								<Field.Content>
 									<Field.Title>I am an Administrator</Field.Title>
@@ -35,18 +35,12 @@
 										Administrators can manage records, view analytics, and export to DepEd SF2.
 									</Field.Description>
 								</Field.Content>
-								<RadioGroup.Item {...props} value="administrator" />
+								<RadioGroup.Item value="administrator" />
 							</div>
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
-			</Field.Field>
-		</Field.Label>
-		<Field.Label>
-			<Field.Field orientation="horizontal">
-				<Form.Field form={chooseUserTypeForm} name="userType">
-					<Form.Control>
-						{#snippet children({ props })}
+						</Field.Field>
+					</Field.Label>
+					<Field.Label>
+						<Field.Field orientation="horizontal">
 							<div class="flex flex-row gap-2">
 								<Field.Content>
 									<Field.Title>I am a Student</Field.Title>
@@ -54,14 +48,14 @@
 										Students can see their own records and penalties, and regenerate their QR code.
 									</Field.Description>
 								</Field.Content>
-								<RadioGroup.Item {...props} value="student" />
+								<RadioGroup.Item value="student" />
 							</div>
-						{/snippet}
-					</Form.Control>
-				</Form.Field>
-			</Field.Field>
-		</Field.Label>
-	</RadioGroup.Root>
+						</Field.Field>
+					</Field.Label>
+				</RadioGroup.Root>
+			{/snippet}
+		</Form.Control>
+	</Form.Field>
 
 	<Form.Button type="submit">Next</Form.Button>
 </form>
