@@ -7,7 +7,6 @@
 	import { Toggle } from 'bits-ui';
 	import { superForm, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import SuperDebugRuned from 'sveltekit-superforms/SuperDebug.svelte';
 
 	let {
 		form,
@@ -39,11 +38,11 @@
 	$formData.userType = 'student';
 
 	let showPassword = $state(false);
+
+	const isFormValid = $derived(verifyStudentSchema.safeParse($formData).success);
 </script>
 
-<SuperDebugRuned data={$formData} />
-
-<form use:enhance method="post" action="?/verifyStudent" class="flex flex-col gap-6">
+<form use:enhance method="post" action="?/verifyStudent" class="flex flex-col gap-3">
 	<Form.Field form={verifyStudentForm} name="lrn">
 		<Form.Control>
 			{#snippet children({ props })}
@@ -89,6 +88,6 @@
 			<Field.FieldError class="text-sm font-medium text-destructive">{serverError}</Field.FieldError
 			>
 		{/if}
-		<Form.Button type="submit">Verify</Form.Button>
+		<Form.Button type="submit" disabled={!isFormValid}>Verify</Form.Button>
 	</div>
 </form>

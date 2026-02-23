@@ -56,6 +56,7 @@ export const actions = {
 			return fail(400, { form, error: errorMessage });
 		}
 
+		await supabase.auth.signOut({ scope: 'others' });
 		redirect(302, '/dashboard');
 	}
 } satisfies Actions;

@@ -30,7 +30,7 @@
 									Enter your given credentials to verify your account.
 								{:else if formResult.step === 'verify-student'}
 									Enter your LRN and given password to verify your account.
-								{:else if formResult.step in ['register-administrator', 'register-student']}
+								{:else if formResult.step === 'register-administrator' || formResult.step === 'register-student'}
 									Enter your email and password to register your account.
 								{/if}
 							</p>
@@ -48,14 +48,12 @@
 							{:else if formResult.step === 'register-administrator'}
 								<RegisterForm
 									form={data.registerForm}
-									id={formResult.id || 0}
 									error={formResult.error}
 									action="?/registerAdministrator"
 								/>
 							{:else if formResult.step === 'register-student'}
 								<RegisterForm
 									form={data.registerForm}
-									id={formResult.id || 0}
 									error={formResult.error}
 									action="?/registerStudent"
 								/>

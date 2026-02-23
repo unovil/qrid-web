@@ -29,6 +29,8 @@
 	const { form: formData, enhance } = $derived(form);
 
 	let showPassword = $state(false);
+
+	const isFormValid = $derived(loginSchema.safeParse($formData).success);
 </script>
 
 <div class="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
@@ -46,7 +48,7 @@
 							<p class="text-balance text-muted-foreground">Login to your QR-ID account</p>
 						</div>
 						<form use:enhance method="post" class="p-6 md:p-8">
-							<Field.FieldGroup>
+							<Field.FieldGroup class="flex flex-col gap-3">
 								<Form.Field {form} name="email">
 									<Form.Control>
 										{#snippet children({ props })}
@@ -93,7 +95,7 @@
 											>{serverError}</Field.FieldError
 										>
 									{/if}
-									<Form.Button type="submit">Sign In</Form.Button>
+									<Form.Button type="submit" disabled={!isFormValid}>Sign In</Form.Button>
 								</div>
 								<Field.FieldDescription class="text-center">
 									Haven't registered your account yet? <a href="/signup">Sign up</a>

@@ -18,6 +18,14 @@ type GetUserJsonReturn = {
 	hashedPassword: string | null;
 };
 
+type AdminMarkAsRegisteredArgs =
+	Database['public']['Functions']['admin_mark_as_registered']['Args'];
+type StudentMarkAsRegisteredArgs =
+	Database['public']['Functions']['student_mark_as_registered']['Args'];
+type MarkAsRegisteredReturn = number;
+
+const pendingRegisterIdKey = 'pending_register_id';
+
 export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) => {
 	const { session } = await safeGetSession();
 	if (session) {
@@ -106,9 +114,15 @@ export const actions = {
 			return fail(400, { form, step: 'verify-student', error: 'Incorrect password.' });
 		}
 
+		event.cookies.set(pendingRegisterIdKey, String(status), {
+			httpOnly: true,
+			sameSite: 'strict',
+			path: '/',
+			maxAge: 60 * 10 // 10 minutes
+		});
+
 		return {
 			step: 'register-student',
-			id: status,
 			error: null,
 			form
 		};
@@ -118,6 +132,7 @@ export const actions = {
 			locals: { supabase }
 		} = event;
 		const form = await superValidate(event, zod4(verifyAdministratorSchema));
+
 		if (!form.valid) {
 			return fail(400, {
 				form,
@@ -167,11 +182,125 @@ export const actions = {
 			return fail(400, { form, step: 'verify-administrator', error: 'Incorrect password.' });
 		}
 
+		event.cookies.set(pendingRegisterIdKey, String(status), {
+			httpOnly: true,
+			sameSite: 'strict',
+			path: '/',
+			maxAge: 60 * 10 // 10 minutes
+		});
+
 		return {
 			step: 'register-administrator',
-			id: status,
 			error: null,
 			form
 		};
+	},
+	registerAdministrator: async (event) => {
+		const {
+			locals: { supabase },
+			cookies
+		} = event;
+
+		const id = cookies.get(pendingRegisterIdKey);
+		console.log('Pending register ID:', id);
+		if (!id || isNaN(Number(id)) || Number(id) <= 0) redirect(302, '/signup');
+		console.log('Pending register ID:', Number(id));
+
+		const form = await superValidate(event, zod4(registerSchema));
+		console.log(form);
+		if (!form.valid) {
+			return fail(400, {
+				form,
+				step: 'register-administrator',
+				error: 'Please enter the correct information.'
+			});
+		}
+
+		const { error: authError } = await supabase.auth.signUp({
+			email: form.data.email,
+			password: form.data.password,
+			options: {
+				data: { admin_user_id: Number(id) }
+			}
+		});
+
+		if (authError) {
+			return fail(400, {
+				form,
+				step: 'register-administrator',
+				error: authError.message || 'An error occurred during registration.'
+			});
+		}
+
+		const { data, error } = await supabase.rpc('admin_mark_as_registered', {
+			admin_id: Number(id)
+		} satisfies AdminMarkAsRegisteredArgs);
+
+		console.log(data);
+
+		if (error || (data as MarkAsRegisteredReturn) !== 0) {
+			return fail(400, {
+				form,
+				step: 'register-administrator',
+				error: error?.message || 'An error occurred while marking the account as registered.'
+			});
+		}
+
+		await supabase.auth.signOut({ scope: 'others' });
+		cookies.delete(pendingRegisterIdKey, { path: '/' });
+
+		redirect(302, '/dashboard');
+	},
+	registerStudent: async (event) => {
+		const {
+			locals: { supabase },
+			cookies
+		} = event;
+
+		const id = cookies.get(pendingRegisterIdKey);
+		if (!id || isNaN(Number(id)) || Number(id) <= 0) redirect(302, '/signup');
+
+		const form = await superValidate(event, zod4(registerSchema));
+		console.log(form);
+		if (!form.valid) {
+			return fail(400, {
+				form,
+				step: 'register-student',
+				error: 'Please enter the correct information.'
+			});
+		}
+
+		const { error: authError } = await supabase.auth.signUp({
+			email: form.data.email,
+			password: form.data.password,
+			options: {
+				data: { student_user_id: Number(id) }
+			}
+		});
+
+		if (authError) {
+			return fail(400, {
+				form,
+				step: 'register-student',
+				error: authError.message || 'An error occurred during registration.'
+			});
+		}
+
+		const { data, error } = await supabase.rpc('student_mark_as_registered', {
+			student_id: Number(id)
+		} satisfies StudentMarkAsRegisteredArgs);
+
+		if (error || (data as MarkAsRegisteredReturn) !== 0) {
+			return fail(400, {
+				form,
+				step: 'register-student',
+				error: error?.message || 'An error occurred while marking the account as registered.'
+			});
+		}
+
+		await supabase.auth.signOut({ scope: 'others' });
+		cookies.delete(pendingRegisterIdKey, { path: '/' });
+
+		redirect(302, '/dashboard');
 	}
 } satisfies Actions;
