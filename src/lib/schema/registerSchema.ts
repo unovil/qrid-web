@@ -21,19 +21,47 @@ export const verifyStudentSchema = chooseUserTypeSchema.extend({
 
 export type VerifyStudentSchema = typeof verifyStudentSchema;
 
-export const registerSchema = z.object({
-	id: z.number().positive(),
-	email: z.email(),
-	password: z
-		.string()
-		.min(8, 'Password must be at least 8 characters long')
-		.regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-		.regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-		.regex(/\d/, 'Password must contain at least one number')
-		.regex(
-			/[@$!%*?&]/,
-			'Password must contain at least one special character (@, $, !, %, *, ?, &)'
-		)
-});
+export const registerSchema = z
+	.object({
+		email: z.email(),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters long')
+			.regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+			.regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+			.regex(/\d/, 'Password must contain at least one number')
+			.regex(
+				/[@$!%*?&+]/,
+				'Password must contain at least one special character (@, $, !, %, *, ?, &)'
+			),
+		confirmPassword: z.string()
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		error: "Passwords don't match.",
+		path: ['confirmPassword']
+	});
+
+export const passwordValidators = [
+	{
+		label: 'At least 8 characters',
+		test: (v: string) => v.length >= 8
+	},
+	{
+		label: 'Contains an uppercase letter',
+		test: (v: string) => /[A-Z]/.test(v)
+	},
+	{
+		label: 'Contains a lowercase letter',
+		test: (v: string) => /[a-z]/.test(v)
+	},
+	{
+		label: 'Contains a number',
+		test: (v: string) => /\d/.test(v)
+	},
+	{
+		label: 'Contains a special character',
+		test: (v: string) => /[@$!%*?&+]/.test(v)
+	}
+];
 
 export type RegisterSchema = typeof registerSchema;

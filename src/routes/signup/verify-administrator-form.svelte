@@ -7,7 +7,6 @@
 	import { Toggle } from 'bits-ui';
 	import { superForm, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import SuperDebugRuned from 'sveltekit-superforms/SuperDebug.svelte';
 
 	let {
 		form,
@@ -40,9 +39,7 @@
 	let showPassword = $state(false);
 </script>
 
-<SuperDebugRuned data={$formData} />
-
-<form use:enhance method="post" action="?/verifyAdmin" class="flex flex-col gap-6">
+<form use:enhance method="post" action="?/verifyAdmin" class="flex flex-col gap-3">
 	<Form.Field form={verifyAdministratorForm} name="domain">
 		<Form.Control>
 			{#snippet children({ props })}

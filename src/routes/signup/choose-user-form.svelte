@@ -5,7 +5,6 @@
 	import { chooseUserTypeSchema } from '$lib/schema/registerSchema';
 	import { superForm, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import SuperDebugRuned from 'sveltekit-superforms/SuperDebug.svelte';
 
 	let { form }: { form: SuperValidated<{ userType: 'administrator' | 'student' }> } = $props();
 
@@ -18,10 +17,7 @@
 	const { form: formData, enhance } = $derived(chooseUserTypeForm);
 </script>
 
-<SuperDebugRuned data={$formData} />
-<br />
-
-<form use:enhance method="post" action="?/chooseUserType" class="flex flex-col gap-6">
+<form use:enhance method="post" action="?/chooseUserType" class="flex flex-col gap-3">
 	<Form.Field form={chooseUserTypeForm} name="userType">
 		<Form.Control>
 			{#snippet children({ props })}
