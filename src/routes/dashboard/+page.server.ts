@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 };
 
 export const actions: Actions = {
-	default: async (event) => {
+	logout: async (event) => {
 		const {
 			locals: { supabase }
 		} = event;
