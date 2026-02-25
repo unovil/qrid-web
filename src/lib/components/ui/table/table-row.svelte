@@ -6,6 +6,7 @@
 		ref = $bindable(null),
 		class: className,
 		children,
+		onclick,
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLTableRowElement>> = $props();
 </script>
@@ -18,6 +19,7 @@
 		className
 	)}
 	{...restProps}
+	{onclick}
 >
 	{@render children?.()}
 </tr>

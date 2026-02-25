@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { BookUser, FileDown, Gauge, Github, Settings } from '@lucide/svelte';
+	import { BookUser, FileDown, Gauge, Github, Settings, User } from '@lucide/svelte';
 	import InnerShadowTopIcon from '@tabler/icons-svelte/icons/inner-shadow-top';
 	import type { ComponentProps } from 'svelte';
 	import NavMain from './nav-main.svelte';
@@ -24,6 +24,11 @@
 				title: 'Attendance Records',
 				url: '/records',
 				icon: BookUser
+			},
+			{
+				title: 'Student Search',
+				url: '/student',
+				icon: User
 			},
 			{
 				title: 'Export',

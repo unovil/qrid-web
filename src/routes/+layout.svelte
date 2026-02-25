@@ -12,6 +12,15 @@
 	let { data, children } = $props();
 	let { supabase, session } = $derived(data);
 
+	const siteHeaders: {
+		route: typeof page.route.id;
+		title: string;
+	}[] = [
+		{ route: '/dashboard', title: 'Dashboard' },
+		{ route: '/records', title: 'Records' },
+		{ route: '/export', title: 'Export' }
+	];
+
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((event, _session) => {
 			if (_session?.expires_at !== session?.expires_at) {
@@ -32,7 +41,9 @@
 	>
 		<AppSidebar variant="inset" />
 		<Sidebar.Inset>
-			<SiteHeader title="Dashboard" />
+			<SiteHeader
+				title={siteHeaders.find((h) => h.route === page.route.id)?.title ?? 'Dashboard'}
+			/>
 			<div class="flex flex-1 flex-col">
 				<div class="@container/main flex flex-1 flex-col gap-2">
 					<div class="flex flex-col gap-8 px-4 py-4 md:gap-10 md:py-6 lg:px-6">
