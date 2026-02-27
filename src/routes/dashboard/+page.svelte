@@ -3,8 +3,12 @@
 	import AttendanceSummaryTable from './attendance-summary-table.svelte';
 	import WarningsTable from './warnings-table.svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import type { SummaryAttendanceLog, WarningLog } from '$lib/components/table-types';
 
-	const attendanceLogs = [
+	const attendanceLogs: {
+		section: string;
+		logs: SummaryAttendanceLog[];
+	}[] = [
 		{
 			section: 'Aristotle',
 			logs: [
@@ -27,7 +31,7 @@
 		}
 	];
 
-	const studentWarnings = [
+	const studentWarnings: WarningLog[] = [
 		{ name: 'Doe, John', section: 'Aristotle', late: 7, status: 'Community service' },
 		{ name: 'Smith, Jane', section: 'Plato', late: 5, status: 'Warning note given' },
 		{ name: 'Johnson, Emily', section: 'Aristotle', late: 5, status: 'Consultation with parents' },

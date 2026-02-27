@@ -13,13 +13,20 @@
 		type DateValue
 	} from '@internationalized/date';
 	import AttendanceSection from './attendance-section.svelte';
+	import type { SectionAttendanceRowLog } from '$lib/components/table-types';
 
 	const id = $props.id();
 
 	let open = $state(false);
 	let calendarValue = $state<CalendarDate | undefined>();
 
-	const attendanceLogs = [
+	const attendanceLogs: {
+		date: Date;
+		logs: {
+			section: string;
+			studentData: SectionAttendanceRowLog[];
+		}[];
+	}[] = [
 		{
 			date: new Date('February 23, 2026'),
 			logs: [

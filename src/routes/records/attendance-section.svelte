@@ -1,22 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import type { SectionAttendanceRowLog } from '$lib/components/table-types';
 	import * as Table from '$lib/components/ui/table/index.js';
 	let {
-		maleLogs,
-		femaleLogs
-	}: {
-		maleLogs: {
-			lrn: number;
-			name: string;
-			timestamp: string;
-			status: string;
-		}[];
-		femaleLogs: {
-			lrn: number;
-			name: string;
-			timestamp: string;
-			status: string;
-		}[];
+		maleLogs = new Array<SectionAttendanceRowLog>(),
+		femaleLogs = new Array<SectionAttendanceRowLog>()
 	} = $props();
 </script>
 

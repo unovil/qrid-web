@@ -1,15 +1,7 @@
 <script lang="ts">
+	import type { WarningLog } from '$lib/components/table-types';
 	import * as Table from '$lib/components/ui/table/index.js';
-	let {
-		warnings
-	}: {
-		warnings: {
-			name: string;
-			section: string;
-			late: number;
-			status: string;
-		}[];
-	} = $props();
+	let { warnings = new Array<WarningLog>() } = $props();
 </script>
 
 <Table.Root>

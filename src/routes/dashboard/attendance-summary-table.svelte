@@ -1,16 +1,7 @@
 <script lang="ts">
+	import type { SummaryAttendanceLog } from '$lib/components/table-types';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
-	let {
-		logs
-	}: {
-		logs: {
-			date: Date;
-			present: number;
-			absent: number;
-			late: number;
-		}[];
-	} = $props();
+	let { logs = new Array<SummaryAttendanceLog>() } = $props();
 </script>
 
 <Table.Root>
