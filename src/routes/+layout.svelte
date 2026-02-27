@@ -38,6 +38,7 @@
 {:else}
 	<Sidebar.Provider
 		style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);"
+		class="min-h-screen min-w-screen"
 	>
 		<AppSidebar variant="inset" />
 		<Sidebar.Inset>
@@ -46,7 +47,7 @@
 			/>
 			<div class="flex flex-1 flex-col">
 				<div class="@container/main flex flex-1 flex-col gap-2">
-					<div class="flex flex-col gap-8 px-4 py-4 md:gap-10 md:py-6 lg:px-6">
+					<div class="flex flex-1 flex-col gap-8 px-4 py-4 md:gap-10 md:py-6 lg:px-6">
 						{@render children()}
 					</div>
 				</div>

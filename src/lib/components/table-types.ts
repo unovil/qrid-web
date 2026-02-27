@@ -18,3 +18,10 @@ export type SectionAttendanceRowLog = {
 	timestamp: string;
 	status: 'Present' | 'Absent' | 'Late';
 };
+
+export type StudentSearchRow = {
+	name: string;
+	lrn: number;
+	grade: number;
+	section: string;
+};
