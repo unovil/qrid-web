@@ -23,7 +23,13 @@
 		</Table.Header>
 		<Table.Body>
 			{#each maleLogs as log, index}
-				<Table.Row onclick={() => goto(`/student/${log.lrn}`)} class="cursor-pointer">
+				{@const bgColor =
+					log.status === 'Present'
+						? 'bg-green-200'
+						: log.status === 'Absent'
+							? 'bg-red-200'
+							: 'bg-yellow-200'}
+				<Table.Row onclick={() => goto(`/student/${log.lrn}`)} class="cursor-pointer {bgColor}">
 					<Table.Cell>{index + 1}</Table.Cell>
 					<Table.Cell>{log.name}</Table.Cell>
 					<Table.Cell class="font-mono">{log.lrn}</Table.Cell>
@@ -52,6 +58,12 @@
 		</Table.Header>
 		<Table.Body>
 			{#each femaleLogs as log, index}
+				{@const bgColor =
+					log.status === 'Present'
+						? 'bg-green-200'
+						: log.status === 'Absent'
+							? 'bg-red-200'
+							: 'bg-yellow-200'}
 				<Table.Row onclick={() => goto(`/student/${log.lrn}`)} class="cursor-pointer">
 					<Table.Cell>{index + 1}</Table.Cell>
 					<Table.Cell>{log.name}</Table.Cell>
