@@ -16,10 +16,10 @@
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head>Previous Days</Table.Head>
-			<Table.Head>Present</Table.Head>
-			<Table.Head>Absent</Table.Head>
-			<Table.Head>Late</Table.Head>
+			<Table.Head class="w-2/5">Previous Days</Table.Head>
+			<Table.Head class="w-1/5">Present</Table.Head>
+			<Table.Head class="w-1/5">Absent</Table.Head>
+			<Table.Head class="w-1/5">Late</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>

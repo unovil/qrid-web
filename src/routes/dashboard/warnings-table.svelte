@@ -15,10 +15,10 @@
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head>Student Name</Table.Head>
-			<Table.Head>Section</Table.Head>
-			<Table.Head>Late Records this quarter</Table.Head>
-			<Table.Head>Status</Table.Head>
+			<Table.Head class="w-1/4">Student Name</Table.Head>
+			<Table.Head class="w-1/4">Section</Table.Head>
+			<Table.Head class="w-1/4">Late Records this quarter</Table.Head>
+			<Table.Head class="w-1/4">Status</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
