@@ -21,7 +21,8 @@
 		monthFormat: monthFormatProp,
 		yearFormat = 'numeric',
 		day,
-		disableDaysOutsideMonth = false,
+		isDateDisabled,
+		disableDaysOutsideMonth = true,
 		attendance = {},
 		...restProps
 	}: WithoutChildrenOrChild<CalendarPrimitive.RootProps> & {
@@ -59,6 +60,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 	{locale}
 	{monthFormat}
 	{yearFormat}
+	{isDateDisabled}
 	{...restProps}
 >
 	{#snippet children({ months, weekdays })}
@@ -104,17 +106,21 @@ get along, so we shut typescript up by casting `value` to `never`.
 												})}
 											{:else}
 												{@const attendanceStatus = attendance[date.toString()]}
-												<Calendar.Day
-													class={cn(
-														attendanceStatus?.status === 'Present' &&
-															'bg-green-500/80 text-white hover:bg-green-500',
-														attendanceStatus?.status === 'Absent' &&
-															'bg-red-500/80 text-white hover:bg-red-500',
-														attendanceStatus?.status === 'Late' &&
-															'bg-yellow-400/80 text-black hover:bg-yellow-400',
-														'rounded-s-md rounded-e-md'
-													)}
-												/>
+												{#if attendanceStatus}
+													<Calendar.Day
+														class={cn(
+															attendanceStatus?.status === 'Present' &&
+																'bg-green-500/80 text-white hover:bg-green-500',
+															attendanceStatus?.status === 'Late' &&
+																'bg-yellow-400/80 text-black hover:bg-yellow-400',
+															'rounded-s-md rounded-e-md'
+														)}
+													/>
+												{:else if isDateDisabled !== undefined && !isDateDisabled(date)}
+													<Calendar.Day class="bg-red-500/80 text-white hover:bg-red-500" />
+												{:else}
+													<Calendar.Day class="bg-transparent text-gray-300" />
+												{/if}
 											{/if}
 										</Calendar.Cell>
 									{/each}

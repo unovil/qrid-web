@@ -303,6 +303,18 @@ export type Database = {
 				Args: { domain: string; org_id: string };
 				Returns: Json;
 			};
+			get_attendance_summary_last_5_days: {
+				Args: never;
+				Returns: {
+					absent: number;
+					date: string;
+					late: number;
+					level: number;
+					present: number;
+					section: string;
+					section_id: number;
+				}[];
+			};
 			get_student_user_json: { Args: { lrn: number }; Returns: Json };
 			student_mark_as_registered: {
 				Args: { student_id: number };

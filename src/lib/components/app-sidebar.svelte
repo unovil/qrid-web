@@ -8,10 +8,21 @@
 	import NavUser from './nav-user.svelte';
 	import favicon from '$lib/assets/favicon.png';
 
-	const data = {
+	let {
+		name,
+		email,
+		schoolName,
+		...restProps
+	}: ComponentProps<typeof Sidebar.Root> & {
+		name: string;
+		email: string;
+		schoolName: string;
+	} = $props();
+
+	const data = $derived({
 		user: {
-			name: 'shadcn',
-			email: 'm@example.com',
+			name,
+			email,
 			avatar: favicon
 		},
 		navMain: [
@@ -48,9 +59,7 @@
 				icon: Github
 			}
 		]
-	};
-
-	let { ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+	});
 </script>
 
 <Sidebar.Root collapsible="offcanvas" {...restProps}>
@@ -61,7 +70,7 @@
 					{#snippet child({ props })}
 						<a href="##" {...props}>
 							<InnerShadowTopIcon class="size-5!" />
-							<span class="text-base font-semibold">Acme Inc.</span>
+							<span class="text-base font-semibold">{schoolName}</span>
 						</a>
 					{/snippet}
 				</Sidebar.MenuButton>

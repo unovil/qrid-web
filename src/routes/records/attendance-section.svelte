@@ -34,7 +34,7 @@
 					<Table.Cell>{log.name}</Table.Cell>
 					<Table.Cell class="font-mono">{log.lrn}</Table.Cell>
 					<Table.Cell>{log.status}</Table.Cell>
-					<Table.Cell>{log.timestamp}</Table.Cell>
+					<Table.Cell class="font-mono">{log.timestamp}</Table.Cell>
 				</Table.Row>
 			{:else}
 				<Table.Row>
@@ -64,12 +64,12 @@
 						: log.status === 'Absent'
 							? 'bg-red-200'
 							: 'bg-yellow-200'}
-				<Table.Row onclick={() => goto(`/student/${log.lrn}`)} class="cursor-pointer">
+				<Table.Row onclick={() => goto(`/student/${log.lrn}`)} class={`cursor-pointer ${bgColor}`}>
 					<Table.Cell>{index + 1}</Table.Cell>
 					<Table.Cell>{log.name}</Table.Cell>
 					<Table.Cell class="font-mono">{log.lrn}</Table.Cell>
 					<Table.Cell>{log.status}</Table.Cell>
-					<Table.Cell>{log.timestamp}</Table.Cell>
+					<Table.Cell class="font-mono">{log.timestamp}</Table.Cell>
 				</Table.Row>
 			{:else}
 				<Table.Row>

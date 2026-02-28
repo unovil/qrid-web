@@ -1,53 +1,27 @@
 <script lang="ts">
-	import * as Select from '$lib/components/ui/select';
-	import Calendar from '$lib/components/ui/calendar/calendar.svelte';
-	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import Calendar from '$lib/components/ui/calendar/calendar.svelte';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { ChevronDownIcon } from '@lucide/svelte';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import * as Select from '$lib/components/ui/select';
 	import {
 		getDayOfWeek,
 		getLocalTimeZone,
 		today,
-		type CalendarDate,
+		CalendarDate,
 		type DateValue
 	} from '@internationalized/date';
+	import { ChevronDownIcon } from '@lucide/svelte';
+	import type { PageProps } from './$types';
 	import AttendanceSection from './attendance-section.svelte';
-	import type { SectionAttendanceRowLog } from '$lib/components/table-types';
 
 	const id = $props.id();
 
 	let open = $state(false);
 	let calendarValue = $state<CalendarDate | undefined>();
 
-	const attendanceLogs: {
-		date: Date;
-		logs: {
-			section: string;
-			studentData: SectionAttendanceRowLog[];
-		}[];
-	}[] = [
-		{
-			date: new Date('February 23, 2026'),
-			logs: [
-				{
-					section: 'Aristotle',
-					studentData: [
-						{ name: 'Doe, John', lrn: 123456789789, timestamp: '6:55:15 AM', status: 'Present' },
-						{ name: 'Smith, Jane', lrn: 987654321987, timestamp: '-', status: 'Absent' },
-						{ name: 'Johnson, Emily', lrn: 456789123456, timestamp: '7:05:30 AM', status: 'Late' },
-						{
-							name: 'Brown, Michael',
-							lrn: 321654987321,
-							timestamp: '6:30:01 AM',
-							status: 'Present'
-						},
-						{ name: 'Davis, Sarah', lrn: 654321987654, timestamp: '6:35:04 AM', status: 'Present' }
-					]
-				}
-			]
-		}
-	];
+	let { data }: PageProps = $props();
+	const { attendanceLogs } = $derived(data);
 
 	let selectedSectionIndex: string | undefined = $state(undefined);
 
@@ -66,9 +40,9 @@
 	class="flex w-full flex-col items-center justify-center gap-4 *:flex *:flex-col *:gap-3 @xl/main:flex-row"
 >
 	<div>
-		<Label for="{id}-date" class="px-1">Date of birth</Label>
+		<Label for="date-select" class="px-1">Date</Label>
 		<Popover.Root bind:open>
-			<Popover.Trigger id="{id}-date">
+			<Popover.Trigger id="date-select">
 				{#snippet child({ props })}
 					<Button {...props} variant="outline" class="w-48 justify-between font-normal">
 						{calendarValue
@@ -80,28 +54,48 @@
 			</Popover.Trigger>
 			<Popover.Content class="w-auto overflow-hidden p-0" align="start">
 				<Calendar
-					{isDateDisabled}
 					type="single"
 					bind:value={calendarValue}
 					captionLayout="dropdown"
-					onValueChange={() => {
-						open = false;
-					}}
 					maxValue={today(getLocalTimeZone())}
+					{isDateDisabled}
 				/>
 			</Popover.Content>
 		</Popover.Root>
 	</div>
 	<div>
-		<Label for="{id}-section" class="px-1">Section</Label>
+		<Label for="section-select" class="px-1">Section</Label>
 		<Select.Root type="single" bind:value={selectedSectionIndex}>
-			<Select.Trigger id="{id}-section" class="w-48">Select a section</Select.Trigger>
+			<Select.Trigger id="section-select" class="w-48">
+				{selectedSectionIndex !== undefined
+					? attendanceLogs[0].logs[Number(selectedSectionIndex)].section
+					: 'Select a section'}
+			</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="0">Aristotle</Select.Item>
-				<Select.Item value="1">Plato</Select.Item>
+				{#each attendanceLogs[0].logs as log, index}
+					<Select.Item value={index.toString()}>{log.section}</Select.Item>
+				{/each}
 			</Select.Content>
 		</Select.Root>
 	</div>
 </div>
 
-<AttendanceSection maleLogs={attendanceLogs[0].logs[0].studentData} femaleLogs={[]} />
+{#if calendarValue !== undefined && selectedSectionIndex !== undefined}
+	{@const dateIso = calendarValue.toString()}
+	{@const dayLog = attendanceLogs.find((a) => a.date.toISOString().split('T')[0] === dateIso)}
+	{#if dayLog}
+		{@const sectionLog = dayLog.logs[Number(selectedSectionIndex)]}
+		{#if sectionLog}
+			<AttendanceSection
+				maleLogs={sectionLog.studentDataMale}
+				femaleLogs={sectionLog.studentDataFemale}
+			/>
+		{:else}
+			<AttendanceSection maleLogs={[]} femaleLogs={[]} />
+		{/if}
+	{:else}
+		<AttendanceSection maleLogs={[]} femaleLogs={[]} />
+	{/if}
+{:else}
+	<AttendanceSection maleLogs={[]} femaleLogs={[]} />
+{/if}

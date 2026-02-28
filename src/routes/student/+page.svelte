@@ -8,19 +8,15 @@
 	import type { StudentSearchRow } from '$lib/components/table-types';
 	import QueryBox from './query-box.svelte';
 	import { goto } from '$app/navigation';
+	import type { PageProps } from './$types';
 
 	const id = $props.id();
 
+	let { data }: PageProps = $props();
+	let { students } = $derived(data);
+
 	let selectedCategory: 'LRN' | 'Section/Name' | undefined = $state(undefined);
 	let selectedStudent: StudentSearchRow | null = $state(null);
-
-	const students: StudentSearchRow[] = [
-		{ name: 'Doe, John', lrn: 123456789789, grade: 7, section: 'Aristotle' },
-		{ name: 'Smith, Jane', lrn: 987654321987, grade: 8, section: 'Plato' },
-		{ name: 'Johnson, Emily', lrn: 456789123456, grade: 9, section: 'Socrates' },
-		{ name: 'Brown, Michael', lrn: 321654987321, grade: 10, section: 'Aristotle' },
-		{ name: 'Davis, Sarah', lrn: 654321987654, grade: 11, section: 'Plato' }
-	];
 
 	let open = $state(false);
 	let isDesktop = $state(false);

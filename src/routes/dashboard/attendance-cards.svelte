@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { getLocalTimeZone, today } from '@internationalized/date';
 	import { CalendarDays, CircleCheck, CircleX, ClockAlert } from '@lucide/svelte';
 
 	let {
@@ -11,6 +12,8 @@
 		absentYesterday = 0,
 		lateYesterday = 0
 	} = $props();
+
+	const dayToday = today(getLocalTimeZone()).toString();
 
 	const compareDays = (today: number, yesterday: number) => {
 		if (today > yesterday) return 'More than';
@@ -34,7 +37,7 @@
 			<Card.Action>
 				<Badge variant="outline">
 					<CalendarDays />
-					Feb 24
+					{dayToday}
 				</Badge>
 			</Card.Action>
 		</Card.Header>
@@ -59,7 +62,7 @@
 			<Card.Action>
 				<Badge variant="outline">
 					<CalendarDays />
-					Feb 24
+					{dayToday}
 				</Badge>
 			</Card.Action>
 		</Card.Header>
@@ -84,7 +87,7 @@
 			<Card.Action>
 				<Badge variant="outline">
 					<CalendarDays />
-					Feb 24
+					{dayToday}
 				</Badge>
 			</Card.Action>
 		</Card.Header>

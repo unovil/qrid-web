@@ -16,11 +16,17 @@ export type SummaryAttendanceLog = {
 	late: number;
 };
 
+export type SummaryAttendanceLogWithSection = {
+	section: string;
+	logs: SummaryAttendanceLog[];
+};
+
 export type SectionAttendanceRowLog = {
 	lrn: number;
 	name: string;
 	timestamp: string;
 	status: AttendanceStatus;
+	sex: 'MALE' | 'FEMALE' | null;
 };
 
 export type StudentSearchRow = {

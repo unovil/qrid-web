@@ -8,9 +8,10 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import SiteHeader from '$lib/components/site-header.svelte';
+	import type { LayoutProps } from './$types';
 
-	let { data, children } = $props();
-	let { supabase, session } = $derived(data);
+	let { data, children }: LayoutProps = $props();
+	let { supabase, session, email, name, schoolName } = $derived(data);
 
 	const siteHeaders: {
 		route: typeof page.route.id;
@@ -18,6 +19,8 @@
 	}[] = [
 		{ route: '/dashboard', title: 'Dashboard' },
 		{ route: '/records', title: 'Records' },
+		{ route: '/student', title: 'Students' },
+		{ route: '/student/[slug]', title: 'Student Details' },
 		{ route: '/export', title: 'Export' }
 	];
 
@@ -40,7 +43,7 @@
 		style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);"
 		class="min-h-screen min-w-screen"
 	>
-		<AppSidebar variant="inset" />
+		<AppSidebar variant="inset" {name} email={email || ''} {schoolName} />
 		<Sidebar.Inset>
 			<SiteHeader
 				title={siteHeaders.find((h) => h.route === page.route.id)?.title ?? 'Dashboard'}
