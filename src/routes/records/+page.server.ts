@@ -1,75 +1,25 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Tables } from '$lib/supabase/database';
-import type { SectionAttendanceRowLog } from '$lib/components/table-types';
+import type { AttendanceStatus, SectionAttendanceRowLog } from '$lib/components/table-types';
+import {
+	getLocalTimeZone,
+	parseAbsolute,
+	parseDate,
+	toCalendarDate,
+	toZoned,
+	ZonedDateTime
+} from '@internationalized/date';
+import type { PostgrestError } from '@supabase/supabase-js';
 
-type Sections = Tables<'sections'>;
-type Students = Tables<'students'>;
-type Attendances = Tables<'attendances'>;
+function toPostgresTimestamptz(zdt: ZonedDateTime): string {
+	const pad = (n: number, l = 2) => String(n).padStart(l, '0');
 
-function buildAttendanceLogs(
-	students: Students[],
-	attendances: Attendances[],
-	sections: Sections[]
-) {
-	const attendanceMap = new Map<string, Attendances[]>(); // key = YYYY-MM-DD
-	for (const att of attendances) {
-		const dateStr = att.timestamp.split('T')[0]; // get date part only
-		if (!attendanceMap.has(dateStr)) attendanceMap.set(dateStr, []);
-		attendanceMap.get(dateStr)!.push(att);
-	}
-
-	const uniqueDates = Array.from(attendanceMap.keys())
-		.sort((a, b) => new Date(b).getTime() - new Date(a).getTime()) // latest first
-		.map((d) => new Date(d));
-
-	return uniqueDates.map((date) => {
-		const dateStr = date.toISOString().split('T')[0];
-
-		const sectionLogs = sections.map((section) => {
-			const studentsInSection = students.filter((s) => s.section_id === section.id);
-
-			let maleData: SectionAttendanceRowLog[] = [];
-			let femaleData: SectionAttendanceRowLog[] = [];
-
-			for (const student of studentsInSection) {
-				const att = (attendanceMap.get(dateStr) || []).find((a) => a.student_id === student.id);
-				let status: 'Present' | 'Absent' | 'Late' = 'Absent';
-				let timestamp = '-';
-
-				if (att) {
-					const attTime = new Date(att.timestamp);
-					timestamp = attTime.toLocaleTimeString('en-US', { hour12: true });
-					status = attTime.getHours() < 7 ? 'Present' : 'Late';
-				}
-
-				const logEntry: SectionAttendanceRowLog = {
-					name: `${student.last_name}, ${student.first_name} ${student.middle_name || ''}`.trim(),
-					lrn: student.id,
-					timestamp,
-					status,
-					sex: student.sex
-				};
-
-				if (student.sex === 'MALE') maleData.push(logEntry);
-				else if (student.sex === 'FEMALE') femaleData.push(logEntry);
-			}
-
-			maleData.sort((a, b) => a.name.localeCompare(b.name));
-			femaleData.sort((a, b) => a.name.localeCompare(b.name));
-
-			return {
-				section: `${section.level} - ${section.section}`,
-				studentDataMale: maleData,
-				studentDataFemale: femaleData
-			};
-		});
-
-		return {
-			date,
-			logs: sectionLogs
-		};
-	});
+	return (
+		`${zdt.year}-${pad(zdt.month)}-${pad(zdt.day)} ` +
+		`${pad(zdt.hour)}:${pad(zdt.minute)}:${pad(zdt.second)}.` +
+		`${pad(zdt.millisecond, 3)}+00`
+	);
 }
 
 export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
@@ -79,13 +29,118 @@ export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
 		redirect(302, '/login');
 	}
 
-	const { data: students } = await supabase.from('students').select();
-	const { data: sections } = await supabase.from('sections').select();
-	const { data: attendances } = await supabase.from('attendances').select();
+	const { data: sections } = (await supabase.from('sections').select()) as {
+		data: Tables<'sections'>[];
+	};
 
-	const attendanceLogs = buildAttendanceLogs(students || [], attendances || [], sections || []);
+	const selectedDate = url.searchParams.get('date');
+	const selectedSectionId = url.searchParams.get('sectionId');
+
+	console.log('URL parameters - date:', selectedDate, 'sectionId:', selectedSectionId);
+
+	if (!selectedDate || !selectedSectionId || isNaN(Number(selectedSectionId))) {
+		return { url: url.origin, sections };
+	}
+
+	let parsedDate: ZonedDateTime | null = null;
+	try {
+		parsedDate = toZoned(toZoned(parseDate(selectedDate), getLocalTimeZone()), 'UTC');
+		console.log('Parsed date:', parsedDate.toString());
+	} catch (e) {
+		console.error('Invalid date format:', selectedDate);
+		return { url: url.origin, sections };
+	}
+
+	const { data: students } = (await supabase
+		.from('students')
+		.select()
+		.eq('section_id', Number(selectedSectionId))) as { data: Tables<'students'>[] };
+	if (!students) {
+		return { url: url.origin, sections };
+	}
+
+	console.log(
+		toPostgresTimestamptz(parsedDate),
+		toPostgresTimestamptz(parsedDate.add({ days: 1 }))
+	);
+
+	const { data: attendances, error: attendanceError } = (await supabase
+		.from('attendances')
+		.select(
+			`
+			id,
+			students (
+				id,
+				section_id
+			),
+			timestamp
+		`
+		)
+		.eq('students.section_id', Number(selectedSectionId))
+		.gte('timestamp', toPostgresTimestamptz(parsedDate))
+		.lt('timestamp', toPostgresTimestamptz(parsedDate.add({ days: 1 })))) as {
+		data: {
+			id: number;
+			students: {
+				id: number;
+				section_id: number;
+			};
+			timestamp: string;
+		}[];
+		error: PostgrestError | null;
+	};
+
+	const attendanceLogs: SectionAttendanceRowLog[] = students.map((student) => {
+		const attendance = attendances?.find((att) => att.students?.id === student.id);
+
+		let status: AttendanceStatus = 'Absent';
+		let timestamp = '-';
+
+		if (attendance) {
+			const datedTimestamp = toZoned(
+				parseAbsolute(attendance.timestamp, 'UTC'),
+				getLocalTimeZone()
+			);
+			console.log(
+				'Original timestamp (UTC):',
+				attendance.timestamp,
+				'Parsed timestamp (local):',
+				datedTimestamp.toString()
+			);
+
+			// Create cutoff time: 7:00:00 AM on the same day
+			const cutoff = new Date(
+				datedTimestamp.year,
+				datedTimestamp.month - 1,
+				datedTimestamp.day,
+				7,
+				0,
+				0,
+				0
+			);
+			const attTime = datedTimestamp.toDate();
+
+			timestamp = datedTimestamp
+				.toDate()
+				.toLocaleTimeString('en-US', {
+					hour: '2-digit',
+					minute: '2-digit',
+					second: '2-digit',
+					hour12: true
+				});
+			status = attTime <= cutoff ? 'Present' : 'Late';
+		}
+
+		return {
+			name: `${student.last_name}, ${student.first_name} ${student.middle_name}`,
+			lrn: student.id,
+			timestamp,
+			status,
+			sex: student.sex
+		};
+	});
 
 	console.log(attendanceLogs);
 
-	return { url: url.origin, attendanceLogs };
+	return { url: url.origin, sections, attendanceLogs };
 };

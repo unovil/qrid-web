@@ -14,6 +14,7 @@
 	import { ChevronDownIcon } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import AttendanceSection from './attendance-section.svelte';
+	import { goto, invalidate } from '$app/navigation';
 
 	const id = $props.id();
 
@@ -21,15 +22,37 @@
 	let calendarValue = $state<CalendarDate | undefined>();
 
 	let { data }: PageProps = $props();
-	const { attendanceLogs } = $derived(data);
+	const { sections } = $derived(data);
+	let { attendanceLogs } = $derived(data);
 
-	let selectedSectionIndex: string | undefined = $state(undefined);
+	let selectedSectionId: string = $state('');
 
 	const isDateDisabled = (date: DateValue) => {
 		// disable weekends
 		const dayOfWeek = getDayOfWeek(date, 'en-US');
 		return dayOfWeek === 0 || dayOfWeek === 6;
 	};
+
+	let lastKey = $state('');
+
+	$effect(() => {
+		if (!calendarValue || !selectedSectionId) return;
+
+		const date = calendarValue.toString();
+		const key = `${date}:${selectedSectionId}`;
+
+		if (key === lastKey) return;
+		lastKey = key;
+
+		console.log(
+			'Selected date and sectionId changed - date:',
+			date,
+			'sectionId:',
+			selectedSectionId
+		);
+
+		goto(`/records?date=${date}&sectionId=${selectedSectionId}`, { replaceState: true });
+	});
 </script>
 
 <h1 class="w-full text-center text-3xl font-semibold text-balance">
@@ -59,43 +82,44 @@
 					captionLayout="dropdown"
 					maxValue={today(getLocalTimeZone())}
 					{isDateDisabled}
+					onValueChange={() => (open = false)}
 				/>
 			</Popover.Content>
 		</Popover.Root>
 	</div>
 	<div>
 		<Label for="section-select" class="px-1">Section</Label>
-		<Select.Root type="single" bind:value={selectedSectionIndex}>
+		<Select.Root type="single" bind:value={selectedSectionId}>
 			<Select.Trigger id="section-select" class="w-48">
-				{selectedSectionIndex !== undefined
-					? attendanceLogs[0].logs[Number(selectedSectionIndex)].section
-					: 'Select a section'}
+				{#if selectedSectionId !== ''}
+					{@const selectedSection = sections.find((s) => s.id.toString() === selectedSectionId)}
+					{selectedSection
+						? `${selectedSection.level} - ${selectedSection.section}`
+						: 'Select a section'}
+				{:else}
+					Select a section
+				{/if}
 			</Select.Trigger>
 			<Select.Content>
-				{#each attendanceLogs[0].logs as log, index}
-					<Select.Item value={index.toString()}>{log.section}</Select.Item>
+				{#each sections as section}
+					<Select.Item value={section.id.toString()}
+						>{`${section.level} - ${section.section}`}</Select.Item
+					>
 				{/each}
 			</Select.Content>
 		</Select.Root>
 	</div>
 </div>
 
-{#if calendarValue !== undefined && selectedSectionIndex !== undefined}
-	{@const dateIso = calendarValue.toString()}
-	{@const dayLog = attendanceLogs.find((a) => a.date.toISOString().split('T')[0] === dateIso)}
-	{#if dayLog}
-		{@const sectionLog = dayLog.logs[Number(selectedSectionIndex)]}
-		{#if sectionLog}
-			<AttendanceSection
-				maleLogs={sectionLog.studentDataMale}
-				femaleLogs={sectionLog.studentDataFemale}
-			/>
-		{:else}
-			<AttendanceSection maleLogs={[]} femaleLogs={[]} />
-		{/if}
-	{:else}
-		<AttendanceSection maleLogs={[]} femaleLogs={[]} />
-	{/if}
+{#if attendanceLogs}
+	<AttendanceSection
+		maleLogs={attendanceLogs
+			.filter((log) => log.sex === 'MALE')
+			.sort((a, b) => a.name.localeCompare(b.name))}
+		femaleLogs={attendanceLogs
+			.filter((log) => log.sex === 'FEMALE')
+			.sort((a, b) => a.name.localeCompare(b.name))}
+	/>
 {:else}
 	<AttendanceSection maleLogs={[]} femaleLogs={[]} />
 {/if}
