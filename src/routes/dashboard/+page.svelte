@@ -73,6 +73,5 @@
 </div>
 
 <div class="flex flex-col gap-3">
-	<span class="font-semibold">Warnings</span>
-	<WarningsTable warnings={studentWarnings} />
+	<div class="flex items-center gap-4"></div>
 </div>
