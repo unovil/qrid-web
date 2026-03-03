@@ -38,46 +38,11 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) rounded-lg"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="end"
 				sideOffset={4}
-			>
-				<DropdownMenu.Label class="p-0 font-normal">
-					<div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
-						</Avatar.Root>
-						<div class="grid flex-1 text-start text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
-							<span class="truncate text-xs text-muted-foreground">
-								{user.email}
-							</span>
-						</div>
-					</div>
-				</DropdownMenu.Label>
-				<DropdownMenu.Separator />
-				<DropdownMenu.Group>
-					<DropdownMenu.Item>
-						<UserCircleIcon />
-						Account
-					</DropdownMenu.Item>
-					<DropdownMenu.Item>
-						<CreditCardIcon />
-						Billing
-					</DropdownMenu.Item>
-					<DropdownMenu.Item>
-						<NotificationIcon />
-						Notifications
-					</DropdownMenu.Item>
-				</DropdownMenu.Group>
-				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
-					<LogoutIcon />
-					Log out
-				</DropdownMenu.Item>
-			</DropdownMenu.Content>
+			></DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
 </Sidebar.Menu>

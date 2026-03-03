@@ -40,11 +40,6 @@
 				title: 'Student Search',
 				url: '/student',
 				icon: User
-			},
-			{
-				title: 'Export',
-				url: '/export',
-				icon: FileDown
 			}
 		],
 		navSecondary: [

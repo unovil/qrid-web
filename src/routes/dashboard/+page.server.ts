@@ -2,7 +2,12 @@ import type {
 	SummaryAttendanceLog,
 	SummaryAttendanceLogWithSection
 } from '$lib/components/table-types';
-import { getPreviousPossibleDays, isStudentLate, toPostgresTimestamptz } from '$lib/dates';
+import {
+	getPreviousPossibleDays,
+	isStudentLate,
+	quarters,
+	toPostgresTimestamptz
+} from '$lib/dates';
 import type { Tables } from '$lib/supabase/database';
 import { getLocalTimeZone, today, toZoned } from '@internationalized/date';
 import { redirect, type Actions } from '@sveltejs/kit';
@@ -72,9 +77,6 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 		entry.logs.sort((a, b) => b.date.getTime() - a.date.getTime());
 	}
 
-	const todayDate = today(getLocalTimeZone());
-	const yesterdayDate = todayDate.subtract({ days: 1 });
-
 	const totals = {
 		today: { present: 0, absent: 0, late: 0 },
 		yesterday: { present: 0, absent: 0, late: 0 }
@@ -90,9 +92,87 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 		totals.yesterday.late += section.logs[1]?.late || 0;
 	}
 
+	const attendancesThisQuarter = (
+		await supabase
+			.from('attendances')
+			.select(
+				`
+			students (
+				id,
+				last_name,
+				first_name,
+				middle_name,
+				sections (
+					level,
+					section
+				)
+			),
+			timestamp
+		`
+			)
+			.gte('timestamp', toPostgresTimestamptz(toZoned(quarters['4th Quarter'].start, 'UTC')))
+			.lt(
+				'timestamp',
+				toPostgresTimestamptz(toZoned(quarters['4th Quarter'].end, 'UTC').add({ days: 1 }))
+			)
+	).data as
+		| {
+				students: {
+					id: number;
+					last_name: string;
+					first_name: string;
+					middle_name: string;
+					sections: {
+						level: number;
+						section: string;
+					};
+				};
+				timestamp: string;
+		  }[]
+		| null;
+
+	if (attendancesThisQuarter === null) {
+		return {
+			url: url.origin,
+			attendanceLogs: Array.from(mappedSummary.values()),
+			totals
+		};
+	}
+
+	const map = new Map<number, { name: string; section: string; late: number; status: string }>();
+
+	for (const record of attendancesThisQuarter) {
+		const { students, timestamp } = record;
+
+		if (!map.has(students.id)) {
+			map.set(students.id, {
+				name: `${students.last_name}, ${students.first_name} ${students.middle_name}`,
+				section: `${students.sections.level} - ${students.sections.section}`,
+				late: 0,
+				status: ''
+			});
+		}
+
+		if (isStudentLate(timestamp)) {
+			map.get(students.id)!.late++;
+		}
+	}
+
+	for (const [id, info] of map.entries()) {
+		// ... here lies status text!
+	}
+
+	// remove all map entries with 0 late count
+	for (const [id, info] of map.entries()) {
+		if (info.late === 0) {
+			map.delete(id);
+		}
+	}
+
 	return {
 		url: url.origin,
 		attendanceLogs: Array.from(mappedSummary.values()),
+		lateStudents: Array.from(map.values()).sort((a, b) => b.late - a.late),
 		totals
 	};
 };

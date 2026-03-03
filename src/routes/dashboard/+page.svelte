@@ -12,25 +12,13 @@
 	let { data }: PageProps = $props();
 
 	let attendanceLogs = $derived(data.attendanceLogs || []);
+	let lateStudents: WarningLog[] = $derived(data.lateStudents || []);
 	let totals = $derived(
 		data.totals || {
 			today: { present: 0, absent: 0, late: 0 },
 			yesterday: { present: 0, absent: 0, late: 0 }
 		}
 	);
-
-	const studentWarnings: WarningLog[] = [
-		{ name: 'Doe, John', section: '7 - Aristotle', late: 7, status: 'Community service' },
-		{ name: 'Smith, Jane', section: '8 - Plato', late: 5, status: 'Warning note given' },
-		{
-			name: 'Johnson, Emily',
-			section: '7 - Aristotle',
-			late: 5,
-			status: 'Consultation with parents'
-		},
-		{ name: 'Brown, Michael', section: '8 - Plato', late: 4, status: 'Warning note given' },
-		{ name: 'Davis, Sarah', section: '7 - Aristotle', late: 3, status: 'Warning note given' }
-	];
 
 	let selectedSectionIndex: string | undefined = $state(undefined);
 
@@ -93,7 +81,7 @@
 	<Tabs.Content value="late-warnings">
 		<div class="flex flex-col gap-3">
 			<div class="flex items-center gap-4">
-				<WarningsTable warnings={studentWarnings} />
+				<WarningsTable warnings={lateStudents} />
 			</div>
 		</div>
 	</Tabs.Content>

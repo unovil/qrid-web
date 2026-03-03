@@ -1,23 +1,15 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.png';
 	import type { CalendarCellLog } from '$lib/components/table-types';
+	import * as Select from '$lib/components/ui/select';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { getPreviousPossibleDays, getReversedQuarterDays, type Quarter } from '$lib/dates';
-	import {
-		CalendarDate,
-		getLocalTimeZone,
-		Time,
-		toCalendarDate,
-		today,
-		type DateValue
-	} from '@internationalized/date';
+	import { getReversedQuarterDays, type Quarter } from '$lib/dates';
+	import { CalendarDate, Time, toCalendarDate } from '@internationalized/date';
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
 	import CalendarView from './calendar-view.svelte';
-	import * as Select from '$lib/components/ui/select';
 
-	let selectedDate: DateValue | undefined = $state(today(getLocalTimeZone()));
 	let dataLoading = $state(true);
 
 	let { data }: PageProps = $props();
