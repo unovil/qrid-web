@@ -1,11 +1,12 @@
+import type {
+	SummaryAttendanceLog,
+	SummaryAttendanceLogWithSection
+} from '$lib/components/table-types';
+import { getPreviousPossibleDays, isStudentLate, toPostgresTimestamptz } from '$lib/dates';
+import type { Tables } from '$lib/supabase/database';
+import { getLocalTimeZone, today, toZoned } from '@internationalized/date';
 import { redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import type { Database } from '$lib/supabase/database';
-import type { SummaryAttendanceLogWithSection } from '$lib/components/table-types';
-import { getLocalTimeZone, toCalendarDate, today } from '@internationalized/date';
-
-type SummaryAttendanceReturn =
-	Database['public']['Functions']['get_attendance_summary_last_5_days']['Returns'];
 
 export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supabase } }) => {
 	const { data, error } = await supabase.auth.getUser();
@@ -14,43 +15,62 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 		redirect(302, '/login');
 	}
 
-	const { data: attendanceSummary, error: attendanceError } = await supabase.rpc(
-		'get_attendance_summary_last_5_days'
-	);
+	const lastFiveDays = getPreviousPossibleDays(5);
 
-	if (attendanceError || !attendanceSummary) {
-		console.error('Error fetching attendance summary:', attendanceError);
-		return {
-			error: 'An error occurred while fetching your attendance summary. Please try again later.'
-		};
-	}
+	let mappedSummary = new Map<string, SummaryAttendanceLogWithSection>();
 
-	const map = new Map<string, SummaryAttendanceLogWithSection>();
+	const sections = (await supabase.from('sections').select()).data as Tables<'sections'>[] | null;
+	if (!sections)
+		return { error: 'An error occurred while fetching your sections. Please try again later.' };
 
-	for (const row of attendanceSummary as SummaryAttendanceReturn) {
-		const sectionLabel = `${row.level} - ${row.section}`;
+	for (const section of sections) {
+		let logs: SummaryAttendanceLog[] = [];
 
-		if (!map.has(sectionLabel)) {
-			map.set(sectionLabel, {
-				section: sectionLabel,
-				logs: []
+		const { count: studentCount } = await supabase
+			.from('students')
+			.select('*', { count: 'exact', head: true })
+			.eq('section_id', section.id);
+
+		if (studentCount === null) continue;
+
+		for (const day of lastFiveDays) {
+			const { data: attendances, count: notAbsentCount } = (await supabase
+				.from('attendances')
+				.select('timestamp, students ( sections ( id ) )', { count: 'exact' })
+				.eq('students.section_id', section.id)
+				.gte('timestamp', toPostgresTimestamptz(toZoned(day, 'UTC')))
+				.lt('timestamp', toPostgresTimestamptz(toZoned(day, 'UTC').add({ days: 1 })))) as {
+				data: { timestamp: string }[] | null;
+				count: number | null;
+			};
+
+			if (attendances === null || notAbsentCount === null) continue;
+
+			const absentCount = studentCount - notAbsentCount;
+
+			const onTimeCount = attendances.filter((att) => {
+				return !isStudentLate(att.timestamp);
+			}).length;
+
+			const lateCount = notAbsentCount - onTimeCount;
+
+			logs.push({
+				date: day.toDate(getLocalTimeZone()),
+				present: onTimeCount,
+				absent: absentCount,
+				late: lateCount
 			});
 		}
 
-		map.get(sectionLabel)!.logs.push({
-			date: new Date(row.date),
-			present: row.present,
-			absent: row.absent,
-			late: row.late
+		mappedSummary.set(`${section.level} - ${section.section}`, {
+			section: `${section.level} - ${section.section}`,
+			logs
 		});
 	}
 
-	// Optional but usually desired: newest first
-	for (const entry of map.values()) {
+	for (const entry of mappedSummary.values()) {
 		entry.logs.sort((a, b) => b.date.getTime() - a.date.getTime());
 	}
-
-	const attendanceLogs = Array.from(map.values());
 
 	const todayDate = today(getLocalTimeZone());
 	const yesterdayDate = todayDate.subtract({ days: 1 });
@@ -60,25 +80,19 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 		yesterday: { present: 0, absent: 0, late: 0 }
 	};
 
-	for (const section of attendanceLogs) {
-		for (const log of section.logs) {
-			if (log.date.toISOString().split('T')[0] === todayDate.toString()) {
-				totals.today.present += log.present;
-				totals.today.absent += log.absent;
-				totals.today.late += log.late;
-			}
+	for (const section of mappedSummary.values()) {
+		totals.today.present += section.logs[0]?.present || 0;
+		totals.today.absent += section.logs[0]?.absent || 0;
+		totals.today.late += section.logs[0]?.late || 0;
 
-			if (log.date.toISOString().split('T')[0] === yesterdayDate.toString()) {
-				totals.yesterday.present += log.present;
-				totals.yesterday.absent += log.absent;
-				totals.yesterday.late += log.late;
-			}
-		}
+		totals.yesterday.present += section.logs[1]?.present || 0;
+		totals.yesterday.absent += section.logs[1]?.absent || 0;
+		totals.yesterday.late += section.logs[1]?.late || 0;
 	}
 
 	return {
 		url: url.origin,
-		attendanceLogs,
+		attendanceLogs: Array.from(mappedSummary.values()),
 		totals
 	};
 };

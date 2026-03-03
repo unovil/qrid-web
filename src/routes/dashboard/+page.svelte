@@ -2,6 +2,8 @@
 	import type { WarningLog } from '$lib/components/table-types';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Tabs from '$lib/components/ui/tabs';
+	import { getPreviousPossibleDays } from '$lib/dates';
+	import { getLocalTimeZone } from '@internationalized/date';
 	import type { PageProps } from './$types';
 	import AttendanceCards from './attendance-cards.svelte';
 	import AttendanceSummaryTable from './attendance-summary-table.svelte';
@@ -40,7 +42,9 @@
 </script>
 
 <h1 class="w-full text-center text-3xl font-semibold text-balance">
-	Your attendance summary for today:
+	Your attendance summary for {getPreviousPossibleDays(1)[0]
+		.toDate(getLocalTimeZone())
+		.toLocaleDateString('en-US', { weekday: 'long' })}:
 </h1>
 
 <AttendanceCards

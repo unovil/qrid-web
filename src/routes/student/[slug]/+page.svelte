@@ -3,19 +3,18 @@
 	import type { CalendarCellLog } from '$lib/components/table-types';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tabs from '$lib/components/ui/tabs';
+	import { getPreviousPossibleDays } from '$lib/dates';
 	import {
 		CalendarDate,
-		getDayOfWeek,
 		getLocalTimeZone,
 		Time,
 		toCalendarDate,
 		today,
 		type DateValue
 	} from '@internationalized/date';
-	import CalendarView from './calendar-view.svelte';
-	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
-	import { isDateDisabled } from '$lib/dates';
+	import type { PageProps } from './$types';
+	import CalendarView from './calendar-view.svelte';
 
 	let selectedDate: DateValue | undefined = $state(today(getLocalTimeZone()));
 	let dataLoading = $state(true);
@@ -46,25 +45,7 @@
 	}
 
 	const LAST_N_DAYS = 20;
-
-	function getLastNDates(n: number): string[] {
-		const dateStrings: string[] = [];
-		let date = today(getLocalTimeZone());
-		while (isDateDisabled(date)) {
-			date = date.subtract({ days: 1 });
-		}
-
-		for (let i = 0; i < n; i++) {
-			dateStrings.push(date.toString());
-			do {
-				date = date.subtract({ days: 1 });
-			} while (isDateDisabled(date));
-		}
-
-		return dateStrings;
-	}
-
-	const last20Days = getLastNDates(LAST_N_DAYS);
+	const last20Days = getPreviousPossibleDays(LAST_N_DAYS).map((date) => date.toString());
 
 	function formatTime12h(time: Time | null): string {
 		if (!time) return '—';

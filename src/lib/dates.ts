@@ -2,30 +2,35 @@ import {
 	CalendarDate,
 	getDayOfWeek,
 	getLocalTimeZone,
+	parseAbsolute,
 	today,
+	toZoned,
+	ZonedDateTime,
 	type DateValue
 } from '@internationalized/date';
 
 export type CalendarRange = { start: CalendarDate; end: CalendarDate };
 
-export const quarters: CalendarRange[] = [
-	{
+export type Quarter = '1st Quarter' | '2nd Quarter' | '3rd Quarter' | '4th Quarter';
+
+export const quarters: Record<Quarter, CalendarRange> = {
+	'1st Quarter': {
 		start: new CalendarDate(2025, 6, 16),
 		end: new CalendarDate(2025, 8, 22)
 	},
-	{
+	'2nd Quarter': {
 		start: new CalendarDate(2025, 8, 26),
 		end: new CalendarDate(2025, 10, 24)
 	},
-	{
+	'3rd Quarter': {
 		start: new CalendarDate(2025, 11, 3),
 		end: new CalendarDate(2026, 1, 23)
 	},
-	{
+	'4th Quarter': {
 		start: new CalendarDate(2026, 1, 26),
 		end: new CalendarDate(2026, 3, 20)
 	}
-];
+};
 
 const firstSchoolDay = new CalendarDate(2025, 6, 16);
 const lastSchoolDay = new CalendarDate(2026, 3, 20);
@@ -98,4 +103,44 @@ export const isWeekend = (date: DateValue) => {
 
 export const isDateDisabled = (date: DateValue) => {
 	return isWeekend(date) || isHoliday(date) || !isSchoolDay(date) || isAfterToday(date);
+};
+
+export const toPostgresTimestamptz = (zdt: ZonedDateTime) => {
+	const pad = (n: number, l = 2) => String(n).padStart(l, '0');
+
+	return (
+		`${zdt.year}-${pad(zdt.month)}-${pad(zdt.day)} ` +
+		`${pad(zdt.hour)}:${pad(zdt.minute)}:${pad(zdt.second)}.` +
+		`${pad(zdt.millisecond, 3)}+00`
+	);
+};
+
+export const isStudentLate = (dbTimestamp: string) => {
+	const datedTimestamp = parseAbsolute(dbTimestamp, getLocalTimeZone());
+
+	// Create cutoff time: 7:00:00 AM on the same day
+	const cutoff = new Date(
+		datedTimestamp.year,
+		datedTimestamp.month - 1,
+		datedTimestamp.day,
+		7,
+		0,
+		0,
+		0
+	);
+	const attTime = datedTimestamp.toDate();
+
+	return attTime > cutoff;
+};
+
+export const getPreviousPossibleDays = (n: number) => {
+	let date = today(getLocalTimeZone());
+	let previousDays = [] as CalendarDate[];
+
+	while (previousDays.length < n) {
+		if (!isDateDisabled(date)) previousDays.push(date);
+		date = date.subtract({ days: 1 });
+	}
+
+	return previousDays;
 };
