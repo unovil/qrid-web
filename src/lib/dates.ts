@@ -2,7 +2,10 @@ import {
 	CalendarDate,
 	getDayOfWeek,
 	getLocalTimeZone,
+	parseAbsolute,
 	today,
+	toZoned,
+	ZonedDateTime,
 	type DateValue
 } from '@internationalized/date';
 
@@ -98,4 +101,44 @@ export const isWeekend = (date: DateValue) => {
 
 export const isDateDisabled = (date: DateValue) => {
 	return isWeekend(date) || isHoliday(date) || !isSchoolDay(date) || isAfterToday(date);
+};
+
+export const toPostgresTimestamptz = (zdt: ZonedDateTime) => {
+	const pad = (n: number, l = 2) => String(n).padStart(l, '0');
+
+	return (
+		`${zdt.year}-${pad(zdt.month)}-${pad(zdt.day)} ` +
+		`${pad(zdt.hour)}:${pad(zdt.minute)}:${pad(zdt.second)}.` +
+		`${pad(zdt.millisecond, 3)}+00`
+	);
+};
+
+export const isStudentLate = (dbTimestamp: string) => {
+	const datedTimestamp = parseAbsolute(dbTimestamp, getLocalTimeZone());
+
+	// Create cutoff time: 7:00:00 AM on the same day
+	const cutoff = new Date(
+		datedTimestamp.year,
+		datedTimestamp.month - 1,
+		datedTimestamp.day,
+		7,
+		0,
+		0,
+		0
+	);
+	const attTime = datedTimestamp.toDate();
+
+	return attTime > cutoff;
+};
+
+export const getPreviousPossibleDays = (n: number) => {
+	let date = today(getLocalTimeZone());
+	let previousDays = [] as CalendarDate[];
+
+	while (previousDays.length < n) {
+		if (!isDateDisabled(date)) previousDays.push(date);
+		date = date.subtract({ days: 1 });
+	}
+
+	return previousDays;
 };

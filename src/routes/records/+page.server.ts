@@ -10,16 +10,7 @@ import {
 import type { PostgrestError } from '@supabase/supabase-js';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-
-function toPostgresTimestamptz(zdt: ZonedDateTime): string {
-	const pad = (n: number, l = 2) => String(n).padStart(l, '0');
-
-	return (
-		`${zdt.year}-${pad(zdt.month)}-${pad(zdt.day)} ` +
-		`${pad(zdt.hour)}:${pad(zdt.minute)}:${pad(zdt.second)}.` +
-		`${pad(zdt.millisecond, 3)}+00`
-	);
-}
+import { isStudentLate, toPostgresTimestamptz } from '$lib/dates';
 
 export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
 	const { data, error } = await supabase.auth.getUser();
@@ -100,24 +91,6 @@ export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
 				parseAbsolute(attendance.timestamp, 'UTC'),
 				getLocalTimeZone()
 			);
-			console.log(
-				'Original timestamp (UTC):',
-				attendance.timestamp,
-				'Parsed timestamp (local):',
-				datedTimestamp.toString()
-			);
-
-			// Create cutoff time: 7:00:00 AM on the same day
-			const cutoff = new Date(
-				datedTimestamp.year,
-				datedTimestamp.month - 1,
-				datedTimestamp.day,
-				7,
-				0,
-				0,
-				0
-			);
-			const attTime = datedTimestamp.toDate();
 
 			timestamp = datedTimestamp.toDate().toLocaleTimeString('en-US', {
 				hour: '2-digit',
@@ -125,7 +98,8 @@ export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
 				second: '2-digit',
 				hour12: true
 			});
-			status = attTime <= cutoff ? 'Present' : 'Late';
+
+			status = isStudentLate(attendance.timestamp) ? 'Late' : 'Present';
 		}
 
 		return {
