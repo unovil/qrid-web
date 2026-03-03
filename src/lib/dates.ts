@@ -144,3 +144,15 @@ export const getPreviousPossibleDays = (n: number) => {
 
 	return previousDays;
 };
+
+export const getReversedQuarterDays = (quarter: Quarter) => {
+	let dates = [] as CalendarDate[];
+	let date = quarters[quarter].end;
+
+	while (date.compare(quarters[quarter].start) >= 0) {
+		if (!isDateDisabled(date)) dates.push(date);
+		date = date.subtract({ days: 1 });
+	}
+
+	return dates;
+};

@@ -3,7 +3,7 @@
 	import type { CalendarCellLog } from '$lib/components/table-types';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { getPreviousPossibleDays } from '$lib/dates';
+	import { getPreviousPossibleDays, getReversedQuarterDays, type Quarter } from '$lib/dates';
 	import {
 		CalendarDate,
 		getLocalTimeZone,
@@ -15,6 +15,7 @@
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
 	import CalendarView from './calendar-view.svelte';
+	import * as Select from '$lib/components/ui/select';
 
 	let selectedDate: DateValue | undefined = $state(today(getLocalTimeZone()));
 	let dataLoading = $state(true);
@@ -44,8 +45,7 @@
 		});
 	}
 
-	const LAST_N_DAYS = 20;
-	const last20Days = getPreviousPossibleDays(LAST_N_DAYS).map((date) => date.toString());
+	let selectedQuarter = $state<Quarter>('4th Quarter');
 
 	function formatTime12h(time: Time | null): string {
 		if (!time) return '—';
@@ -117,6 +117,19 @@
 			<CalendarView {days} />
 		</Tabs.Content>
 		<Tabs.Content value="records">
+			<div class="flex items-center">
+				<span class="mr-4 font-semibold">Select a quarter:</span>
+				<Select.Root type="single" bind:value={selectedQuarter}>
+					<Select.Trigger class="w-60">{selectedQuarter}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value={'4th Quarter' as Quarter}>{'4th Quarter' as Quarter}</Select.Item>
+						<Select.Item value={'3rd Quarter' as Quarter}>{'3rd Quarter' as Quarter}</Select.Item>
+						<Select.Item value={'2nd Quarter' as Quarter}>{'2nd Quarter' as Quarter}</Select.Item>
+						<Select.Item value={'1st Quarter' as Quarter}>{'1st Quarter' as Quarter}</Select.Item>
+					</Select.Content>
+				</Select.Root>
+			</div>
+
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
@@ -126,7 +139,7 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each last20Days as date}
+					{#each getReversedQuarterDays(selectedQuarter).map((date) => date.toString()) as date}
 						{@const log = days[date]}
 						{#if log}
 							{@const bgColor = log.status === 'Present' ? 'bg-green-200' : 'bg-yellow-200'}

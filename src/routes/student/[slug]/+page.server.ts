@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ params, url, locals: { supabase } }
 		};
 	};
 	const attendanceData = (attendanceRequest.data as Tables<'attendances'>[]).map((a) => {
-		const zonedDateTime = parseAbsolute(a.timestamp.split('.')[0] + 'Z', getLocalTimeZone());
+		const zonedDateTime = parseAbsolute(a.timestamp, getLocalTimeZone());
 
 		return {
 			...a,
