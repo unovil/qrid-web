@@ -1,16 +1,7 @@
+import type { Tables } from '$lib/supabase/database';
+import { getLocalTimeZone, parseAbsolute } from '@internationalized/date';
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import type { Tables } from '$lib/supabase/database';
-import {
-	CalendarDateTime,
-	getLocalTimeZone,
-	parseAbsolute,
-	parseDateTime,
-	parseZonedDateTime,
-	toCalendar,
-	toCalendarDateTime
-} from '@internationalized/date';
-import { toZoned } from '@internationalized/date';
 
 export const load: PageServerLoad = async ({ params, url, locals: { supabase } }) => {
 	const userRequest = await supabase.auth.getUser();

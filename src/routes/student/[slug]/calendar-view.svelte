@@ -5,8 +5,16 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card/index';
 	import {
-		getDayOfWeek,
+		isLastSchoolDay,
+		isDateDisabled,
+		isFirstSchoolDay,
+		isWeekend,
+		isHoliday,
+		getHolidayName
+	} from '$lib/dates';
+	import {
 		getLocalTimeZone,
+		isWeekday,
 		Time,
 		today,
 		type DateValue
@@ -17,14 +25,9 @@
 		ChevronRight,
 		CircleCheck,
 		CircleX,
-		ClockAlert
+		ClockAlert,
+		CalendarOff
 	} from '@lucide/svelte';
-
-	const isDateDisabled = (date: DateValue) => {
-		// disable weekends
-		const dayOfWeek = getDayOfWeek(date, 'en-US');
-		return dayOfWeek === 0 || dayOfWeek === 6;
-	};
 
 	let selectedDate: DateValue | undefined = $state(today(getLocalTimeZone()));
 
@@ -67,6 +70,46 @@
 						: 'text-yellow-900'
 		};
 	});
+
+	const resolvedCard = $derived.by(() => {
+		if (selectedDate === undefined)
+			return {
+				status: 'No data',
+				icon: CircleX,
+				gradient: 'from-gray-100',
+				textColor: 'text-gray-900',
+				time: 'No timestamp recorded'
+			};
+
+		if (cardInfo)
+			return {
+				status: cardInfo.status,
+				icon: cardInfo.icon,
+				gradient: cardInfo.gradient,
+				textColor: cardInfo.textColor,
+				time: cardInfo.time
+			};
+
+		if (selectedDate && !isDateDisabled(selectedDate))
+			return {
+				status: 'Absent',
+				icon: CircleX,
+				gradient: 'from-red-100',
+				textColor: 'text-red-900',
+				time: 'No timestamp recorded'
+			};
+
+		if (isHoliday(selectedDate))
+			return {
+				status: getHolidayName(selectedDate) ?? 'Holiday',
+				icon: CalendarOff,
+				gradient: 'from-gray-100',
+				textColor: 'text-gray-900',
+				time: 'No timestamp recorded'
+			};
+
+		return null;
+	});
 </script>
 
 <div class="flex w-full gap-10">
@@ -80,172 +123,75 @@
 
 	<!-- center using grid with padding -->
 	<div class="my-auto grid flex-1 p-10 text-start">
-		{#if selectedDate}
-			{#if cardInfo}
-				<Card.Root class={`@container/card bg-linear-to-t ${cardInfo.gradient} to-card shadow-xs`}>
-					<Card.Header class="items-center">
-						<Card.Description class={`font-semibold ${cardInfo.textColor}`}>
-							Information
-						</Card.Description>
+		{#if resolvedCard && selectedDate}
+			<Card.Root
+				class={`@container/card bg-linear-to-t ${resolvedCard.gradient} to-card shadow-xs`}
+			>
+				<Card.Header class="items-center">
+					<Card.Description class={`font-semibold ${resolvedCard.textColor}`}>
+						Information
+					</Card.Description>
 
-						<Card.Title
-							class={`flex items-center gap-2 text-4xl font-semibold ${cardInfo.textColor} tabular-nums @[250px]/card:text-5xl`}
+					<Card.Title
+						class={`flex items-center gap-2 text-4xl font-semibold ${resolvedCard.textColor} tabular-nums @[250px]/card:text-5xl`}
+					>
+						<resolvedCard.icon class="size-12" />
+						{resolvedCard.status}
+					</Card.Title>
+
+					<Card.Action class="justify-center">
+						<Badge variant="outline">
+							<CalendarDays />
+							{selectedDate
+								? `${selectedDate.month}/${selectedDate.day}/${selectedDate.year}`
+								: 'No date selected'}
+						</Badge>
+					</Card.Action>
+				</Card.Header>
+
+				<Card.Content class="h-auto text-lg">
+					<span class="font-semibold">Attendance time:</span>
+					<span class="font-mono">{resolvedCard.time}</span>
+				</Card.Content>
+
+				<Card.Footer>
+					<div class="grid w-full grid-cols-2 gap-2 text-sm">
+						<Button
+							variant="outline"
+							onclick={() => {
+								if (!selectedDate) return;
+
+								let days = 1;
+								while (isWeekend(selectedDate.subtract({ days }))) days++;
+								selectedDate = selectedDate.subtract({ days });
+							}}
+							disabled={isFirstSchoolDay(selectedDate)}
 						>
-							<cardInfo.icon class="size-12" />
-							{cardInfo.status}
-						</Card.Title>
+							<span class="flex items-center gap-2">
+								<ChevronLeft />
+								<span>Previous Day</span>
+							</span>
+						</Button>
 
-						<Card.Action class="justify-center">
-							<Badge variant="outline">
-								<CalendarDays />
-								{selectedDate
-									? `${selectedDate.month}/${selectedDate.day}/${selectedDate.year}`
-									: 'No date selected'}
-							</Badge>
-						</Card.Action>
-					</Card.Header>
+						<Button
+							variant="outline"
+							onclick={() => {
+								if (!selectedDate) return;
 
-					<Card.Content class="h-auto text-lg">
-						<span class="font-semibold">Attendance time:</span>
-						<span class="font-mono">{cardInfo.time}</span>
-					</Card.Content>
-
-					<Card.Footer>
-						<div class="grid w-full grid-cols-2 gap-2 text-sm">
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.subtract({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<ChevronLeft />
-									<span>Previous Day</span>
-								</span>
-							</Button>
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.add({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<span>Next Day</span>
-									<ChevronRight />
-								</span>
-							</Button>
-						</div>
-					</Card.Footer>
-				</Card.Root>
-			{:else if !cardInfo && !isDateDisabled(selectedDate)}
-				<Card.Root class="@container/card bg-linear-to-t from-red-100 to-card shadow-xs">
-					<Card.Header class="items-center">
-						<Card.Description class="font-semibold text-red-900">Information</Card.Description>
-
-						<Card.Title
-							class="flex items-center gap-2 text-4xl font-semibold text-red-900 tabular-nums @[250px]/card:text-5xl"
+								let days = 1;
+								while (isWeekend(selectedDate.add({ days }))) days++;
+								selectedDate = selectedDate.add({ days });
+							}}
+							disabled={isLastSchoolDay(selectedDate)}
 						>
-							<CircleX class="size-12" />
-							Absent
-						</Card.Title>
-
-						<Card.Action class="justify-center">
-							<Badge variant="outline">
-								<CalendarDays />
-								{selectedDate
-									? `${selectedDate.month}/${selectedDate.day}/${selectedDate.year}`
-									: 'No date selected'}
-							</Badge>
-						</Card.Action>
-					</Card.Header>
-
-					<Card.Content class="h-auto text-lg">
-						<span class="font-semibold">Attendance time:</span>
-						<span class="font-mono">No timestamp recorded</span>
-					</Card.Content>
-
-					<Card.Footer>
-						<div class="grid w-full grid-cols-2 gap-2 text-sm">
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.subtract({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<ChevronLeft />
-									<span>Previous Day</span>
-								</span>
-							</Button>
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.add({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<span>Next Day</span>
-									<ChevronRight />
-								</span>
-							</Button>
-						</div>
-					</Card.Footer>
-				</Card.Root>
-			{:else}
-				<Card.Root class="@container/card bg-linear-to-t from-gray-100 to-card shadow-xs">
-					<Card.Header class="items-center">
-						<Card.Description class="font-semibold text-gray-900">Information</Card.Description>
-
-						<Card.Title
-							class="flex items-center gap-2 text-4xl font-semibold text-gray-900 tabular-nums @[250px]/card:text-5xl"
-						>
-							<CircleX class="size-12" />
-							No data
-						</Card.Title>
-
-						<Card.Action class="justify-center">
-							<Badge variant="outline">
-								<CalendarDays />
-								{selectedDate
-									? `${selectedDate.month}/${selectedDate.day}/${selectedDate.year}`
-									: 'No date selected'}
-							</Badge>
-						</Card.Action>
-					</Card.Header>
-
-					<Card.Content class="h-auto text-lg">
-						<span class="font-semibold">Attendance time:</span>
-						<span class="font-mono">No timestamp recorded</span>
-					</Card.Content>
-
-					<Card.Footer>
-						<div class="grid w-full grid-cols-2 gap-2 text-sm">
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.subtract({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<ChevronLeft />
-									<span>Previous Day</span>
-								</span>
-							</Button>
-							<Button
-								variant="outline"
-								onclick={() => {
-									selectedDate = selectedDate ? selectedDate.add({ days: 1 }) : undefined;
-								}}
-							>
-								<span class="flex items-center gap-2">
-									<span>Next Day</span>
-									<ChevronRight />
-								</span>
-							</Button>
-						</div>
-					</Card.Footer>
-				</Card.Root>
-			{/if}
+							<span class="flex items-center gap-2">
+								<span>Next Day</span>
+								<ChevronRight />
+							</span>
+						</Button>
+					</div>
+				</Card.Footer>
+			</Card.Root>
 		{/if}
 	</div>
 </div>

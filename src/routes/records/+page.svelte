@@ -1,22 +1,15 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Calendar from '$lib/components/ui/calendar/calendar.svelte';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Select from '$lib/components/ui/select';
-	import {
-		getDayOfWeek,
-		getLocalTimeZone,
-		today,
-		CalendarDate,
-		type DateValue
-	} from '@internationalized/date';
+	import { isDateDisabled } from '$lib/dates';
+	import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date';
 	import { ChevronDownIcon } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import AttendanceSection from './attendance-section.svelte';
-	import { goto, invalidate } from '$app/navigation';
-
-	const id = $props.id();
 
 	let open = $state(false);
 	let calendarValue = $state<CalendarDate | undefined>();
@@ -26,12 +19,6 @@
 	let { attendanceLogs } = $derived(data);
 
 	let selectedSectionId: string = $state('');
-
-	const isDateDisabled = (date: DateValue) => {
-		// disable weekends
-		const dayOfWeek = getDayOfWeek(date, 'en-US');
-		return dayOfWeek === 0 || dayOfWeek === 6;
-	};
 
 	let lastKey = $state('');
 

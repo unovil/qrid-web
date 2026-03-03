@@ -26,9 +26,9 @@
 			<div class="my-10 flex justify-center gap-4">
 				<!-- Should change depending on whether the user has already signed in or not. -->
 				<a
-					href="/login"
+					href={data.user ? '/dashboard' : '/login'}
 					class="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-					>Get started</a
+					>{data.user ? 'Continue to Dashboard' : 'Get Started'}</a
 				>
 				<a
 					href="https://github.com/unovil/qrid-web"

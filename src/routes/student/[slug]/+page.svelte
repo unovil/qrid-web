@@ -15,6 +15,7 @@
 	import CalendarView from './calendar-view.svelte';
 	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
+	import { isDateDisabled } from '$lib/dates';
 
 	let selectedDate: DateValue | undefined = $state(today(getLocalTimeZone()));
 	let dataLoading = $state(true);
@@ -23,12 +24,6 @@
 	let { student, attendances, avatar } = $derived(data);
 
 	let imageSrc = $state('');
-
-	const isDateDisabled = (date: DateValue) => {
-		// disable weekends
-		const dayOfWeek = getDayOfWeek(date, 'en-US');
-		return dayOfWeek === 0 || dayOfWeek === 6;
-	};
 
 	function checkImageExists(url: string): Promise<boolean> {
 		return new Promise((resolve) => {

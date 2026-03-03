@@ -1,16 +1,15 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import type { Tables } from '$lib/supabase/database';
 import type { AttendanceStatus, SectionAttendanceRowLog } from '$lib/components/table-types';
+import type { Tables } from '$lib/supabase/database';
 import {
 	getLocalTimeZone,
 	parseAbsolute,
 	parseDate,
-	toCalendarDate,
 	toZoned,
 	ZonedDateTime
 } from '@internationalized/date';
 import type { PostgrestError } from '@supabase/supabase-js';
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 
 function toPostgresTimestamptz(zdt: ZonedDateTime): string {
 	const pad = (n: number, l = 2) => String(n).padStart(l, '0');
@@ -120,14 +119,12 @@ export const load: PageServerLoad = async ({ url, locals: { supabase } }) => {
 			);
 			const attTime = datedTimestamp.toDate();
 
-			timestamp = datedTimestamp
-				.toDate()
-				.toLocaleTimeString('en-US', {
-					hour: '2-digit',
-					minute: '2-digit',
-					second: '2-digit',
-					hour12: true
-				});
+			timestamp = datedTimestamp.toDate().toLocaleTimeString('en-US', {
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+				hour12: true
+			});
 			status = attTime <= cutoff ? 'Present' : 'Late';
 		}
 
