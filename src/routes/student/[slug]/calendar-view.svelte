@@ -112,17 +112,19 @@
 	});
 </script>
 
-<div class="flex w-full gap-10">
-	<AttendanceCalendar
-		type="single"
-		bind:value={selectedDate}
-		class="inline-block rounded-lg border [--cell-size:--spacing(11)] md:[--cell-size:--spacing(12)]"
-		attendance={days}
-		{isDateDisabled}
-	/>
+<div class="flex w-full flex-col gap-10 md:flex-row">
+	<div class="flex justify-center md:justify-start">
+		<AttendanceCalendar
+			type="single"
+			bind:value={selectedDate}
+			class="inline-block w-fit rounded-lg border [--cell-size:--spacing(11)] md:[--cell-size:--spacing(12)]"
+			attendance={days}
+			{isDateDisabled}
+		/>
+	</div>
 
 	<!-- center using grid with padding -->
-	<div class="my-auto grid flex-1 p-10 text-start">
+	<div class="my-auto grid flex-1 p-10 text-start md:my-auto">
 		{#if resolvedCard && selectedDate}
 			<Card.Root
 				class={`@container/card bg-linear-to-t ${resolvedCard.gradient} to-card shadow-xs`}
