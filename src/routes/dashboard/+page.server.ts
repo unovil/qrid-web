@@ -28,6 +28,8 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 	if (!sections)
 		return { error: 'An error occurred while fetching your sections. Please try again later.' };
 
+	console.log(sections);
+
 	for (const section of sections) {
 		let logs: SummaryAttendanceLog[] = [];
 
@@ -37,19 +39,24 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 			.eq('section_id', section.id);
 
 		if (studentCount === null) continue;
+		console.log('Student count for section', section.section, ' is ', studentCount);
 
 		for (const day of lastFiveDays) {
-			const { data: attendances, count: notAbsentCount } = (await supabase
+			const { data: attendances } = (await supabase
 				.from('attendances')
-				.select('timestamp, students ( sections ( id ) )', { count: 'exact' })
+				.select('timestamp, students!inner(section_id) )')
 				.eq('students.section_id', section.id)
-				.gte('timestamp', toPostgresTimestamptz(toZoned(day, 'UTC')))
-				.lt('timestamp', toPostgresTimestamptz(toZoned(day, 'UTC').add({ days: 1 })))) as {
+				.gte('timestamp', toPostgresTimestamptz(toZoned(toZoned(day, getLocalTimeZone()), 'UTC')))
+				.lt(
+					'timestamp',
+					toPostgresTimestamptz(toZoned(toZoned(day, getLocalTimeZone()), 'UTC').add({ days: 1 }))
+				)) as {
 				data: { timestamp: string }[] | null;
-				count: number | null;
 			};
 
-			if (attendances === null || notAbsentCount === null) continue;
+			const notAbsentCount = attendances?.length;
+
+			if (attendances === null || notAbsentCount === undefined) continue;
 
 			const absentCount = studentCount - notAbsentCount;
 
@@ -160,13 +167,21 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession, supa
 
 	for (const [id, info] of map.entries()) {
 		// ... here lies status text!
-	}
+		// 3 = warning slip
+		// 6 = parent conference
+		// 9 = community service
 
-	// remove all map entries with 0 late count
-	for (const [id, info] of map.entries()) {
-		if (info.late === 0) {
-			map.delete(id);
+		if (info.late >= 9) {
+			info.status = 'Community Service';
+		} else if (info.late >= 6) {
+			info.status = 'Parent Conference';
+		} else if (info.late >= 3) {
+			info.status = 'Warning Slip';
+		} else {
+			info.status = 'None';
 		}
+
+		if (info.late === 0) map.delete(id);
 	}
 
 	return {

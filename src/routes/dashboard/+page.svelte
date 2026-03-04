@@ -8,6 +8,7 @@
 	import AttendanceCards from './attendance-cards.svelte';
 	import AttendanceSummaryTable from './attendance-summary-table.svelte';
 	import WarningsTable from './warnings-table.svelte';
+	import { onMount } from 'svelte';
 
 	let { data }: PageProps = $props();
 
@@ -19,6 +20,10 @@
 			yesterday: { present: 0, absent: 0, late: 0 }
 		}
 	);
+
+	onMount(() => {
+		console.log(attendanceLogs);
+	});
 
 	let selectedSectionIndex: string | undefined = $state(undefined);
 
